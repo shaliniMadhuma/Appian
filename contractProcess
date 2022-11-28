@@ -1,0 +1,1528 @@
+{
+  a!localVariables(
+    /*Editable grid data*/
+    local!AccountEscalation: 'type!{urn:com:appian:types:SCMS}SCMS_Contract_Account_Escalations'(),
+    local!ScadeaEscalation: 'type!{urn:com:appian:types:SCMS}SCMS_Company_Escalations'(),
+    local!AccountLocation: 'type!{urn:com:appian:types:SCMS}SCMS_Contract_Account_Locations'(),
+    local!ScadeaLocation: 'type!{urn:com:appian:types:SCMS}SCMS_Company_Service_Location'(),
+    local!ApplicationArtifact: 'type!{urn:com:appian:types:SCMS}SCMS_Application_Artifact'(),
+    local!AbbrevationArtifact: 'type!{urn:com:appian:types:SCMS}SCMS_Abbreviation_Artifact'(),
+    local!Portfolio: 'type!{urn:com:appian:types:SCMS}SCMS_Contract_Portfolio'(),
+    local!originalContract: 'type!{urn:com:appian:types:SCMS}SCMS_Contract'(),
+    local!Representatives: 'type!{urn:com:appian:types:SCMS}SCMS_Contract_Representative'(),
+    local!contract: 'type!{urn:com:appian:types:SCMS}SCMS_Contract'(),
+    local!contractfinancial: 'type!{urn:com:appian:types:SCMS}SCMS_Contract_Financials'(),
+    local!financialBilling: 'type!{urn:com:appian:types:SCMS}SCMS_Financial_Billing_Summary'(),
+    local!previousRepresentatives: rule!SCMS_QE_RepresentativesByContractId(
+      contractId: ri!contract['recordType!{2ebb93da-5bd4-4067-8886-38d12d0d074e}Contract.fields.{106ff119-dd71-437d-bed5-71e59d633cdb}id']
+    ),
+    local!previousScadeaLocation: rule!SCMS_QE_ContractServiceLocationByContractId(
+      contractId: ri!contract['recordType!{2ebb93da-5bd4-4067-8886-38d12d0d074e}Contract.fields.{106ff119-dd71-437d-bed5-71e59d633cdb}id']
+    ),
+    local!previousAccountLocation: rule!SCMS_QE_ContractAccountLocationByContractId(
+      contractId: ri!contract['recordType!{2ebb93da-5bd4-4067-8886-38d12d0d074e}Contract.fields.{106ff119-dd71-437d-bed5-71e59d633cdb}id']
+    ),
+    local!prevouosScadeaEscalation: rule!SCMS_QE_CompanyEscalationByContractId(
+      contractId: ri!contract['recordType!{2ebb93da-5bd4-4067-8886-38d12d0d074e}Contract.fields.{106ff119-dd71-437d-bed5-71e59d633cdb}id']
+    ),
+    local!previousAccountEscalation: rule!SCMS_QE_contractAccountEscalationByContractId(
+      contractId: ri!contract['recordType!{2ebb93da-5bd4-4067-8886-38d12d0d074e}Contract.fields.{106ff119-dd71-437d-bed5-71e59d633cdb}id']
+    ),
+    local!previousAbbrevationArtifact: rule!SCMS_QE_AbbreviationArtifactsByContractId(
+      contractId: ri!contract['recordType!{2ebb93da-5bd4-4067-8886-38d12d0d074e}Contract.fields.{106ff119-dd71-437d-bed5-71e59d633cdb}id']
+    ),
+    local!previiousApplicationArtifact: rule!SCMS_QE_applicationArtifactsByContractId(
+      contractId: ri!contract['recordType!{2ebb93da-5bd4-4067-8886-38d12d0d074e}Contract.fields.{106ff119-dd71-437d-bed5-71e59d633cdb}id']
+    ),
+    local!previousPortpolio: rule!SCMS_QE_ContractPortfolioDataByContractId(
+      contractId: ri!contract['recordType!{2ebb93da-5bd4-4067-8886-38d12d0d074e}Contract.fields.{106ff119-dd71-437d-bed5-71e59d633cdb}id']
+    ),
+    /* List of steps in the milestone bar */
+    local!milestoneBarSteps: {
+      "General",
+      "Related Parties",
+      "Artifacts",
+      "Allocations",
+      "Financial",
+      "Deliverables",
+      "Document",
+      "Submission"
+    },
+    local!contractIdNewlyCreated,
+    local!task: a!map(
+      /*task for submission*/
+      id: null(),
+      taskId: null(),
+      referenceTypeLookUpId: null(),
+      referenceId: if(
+        or(
+          ri!New = true,
+          ri!Amendment = true,
+          ri!Revision = true
+        ),
+        local!contract.id,
+        ri!contract['recordType!{2ebb93da-5bd4-4067-8886-38d12d0d074e}Contract.fields.{106ff119-dd71-437d-bed5-71e59d633cdb}id']
+      ),
+      taskName: null(),
+      submissionNote: null(),
+      assignedBy: null(),
+      assignedOn: null(),
+      assignedTo: null(),
+      completedOn: null(),
+      completedBy: null(),
+      statusLookUpId: null(),
+      isActive: null()
+    ),
+    /*local!Bill,*/
+    local!currentMilestoneBarStep: 1,
+    /*local!nextInStep4: rule!SCMS_viewNextButton(roleDetails: ri!financialRole),*/
+    local!financialGeneralInfo: rule!SCMS_QE_getFinancialDetailsByContractId(
+      contractId: ri!contract['recordType!{2ebb93da-5bd4-4067-8886-38d12d0d074e}Contract.fields.{106ff119-dd71-437d-bed5-71e59d633cdb}id']
+    ),
+    local!roleDetails: rule!SCMS_QE_getFinancialRoleByContractId(
+      contractId: ri!contract['recordType!{2ebb93da-5bd4-4067-8886-38d12d0d074e}Contract.fields.{106ff119-dd71-437d-bed5-71e59d633cdb}id']
+    ),
+    local!deliverableDetails: rule!SCMS_QE_getFinancialDeliverablesByContractId(
+      contractId: ri!contract['recordType!{2ebb93da-5bd4-4067-8886-38d12d0d074e}Contract.fields.{106ff119-dd71-437d-bed5-71e59d633cdb}id']
+    ),
+    local!finacialBillingDetails: rule!SCMS_QE_getFinancialBillingDetailsByContractId(
+      contractId: ri!contract['recordType!{2ebb93da-5bd4-4067-8886-38d12d0d074e}Contract.fields.{106ff119-dd71-437d-bed5-71e59d633cdb}id']
+    ),
+    local!saveStep4,
+    local!saveStep5,
+    {
+      a!columnsLayout(
+        columns: {
+          a!forEach(
+            items: local!milestoneBarSteps,
+            expression: if(
+              /* Completed step */
+              fv!index < local!currentMilestoneBarStep,
+              a!columnLayout(
+                contents: {
+                  a!cardLayout(
+                    contents: {
+                      a!sideBySideLayout(
+                        items: {
+                          a!sideBySideItem(
+                            item: a!richTextDisplayField(
+                              labelPosition: "COLLAPSED",
+                              value: {
+                                a!richTextItem(
+                                  text: {
+                                    a!richTextIcon(
+                                      size: "SMALL",
+                                      icon: "check",
+                                      altText: "Completed step"
+                                    )
+                                  },
+                                  size: "SMALL",
+                                  style: "STRONG"
+                                )
+                              },
+                              align: "CENTER"
+                            ),
+                            width: "MINIMIZE"
+                          ),
+                          a!sideBySideItem(
+                            item: a!richTextDisplayField(
+                              labelPosition: "COLLAPSED",
+                              value: {
+                                a!richTextItem(text: upper(fv!item), size: "SMALL")
+                              },
+                              align: "LEFT"
+                            )
+                          )
+                        }
+                      )
+                    },
+                    /* Link to go to selected step */
+                    link: a!dynamicLink(
+                      value: fv!index,
+                      saveInto: local!currentMilestoneBarStep
+                    ),
+                    style: "#8a9c8f",
+                    showBorder: false,
+                    accessibilityText: "Completed step. Press space to view step."
+                  )
+                }
+              ),
+              if(
+                /* Future step */
+                fv!index > local!currentMilestoneBarStep,
+                a!columnLayout(
+                  contents: {
+                    a!cardLayout(
+                      contents: {
+                        a!sideBySideLayout(
+                          items: {
+                            a!sideBySideItem(
+                              item: a!richTextDisplayField(
+                                labelPosition: "COLLAPSED",
+                                value: {
+                                  a!richTextItem(
+                                    text: {
+                                      a!richTextIcon(
+                                        icon: "hourglass-start",
+                                        altText: "Future Step",
+                                        size: "SMALL"
+                                      )
+                                    },
+                                    size: "SMALL",
+                                    style: "STRONG"
+                                  )/*a!richTextItem(*/
+                                  /*text: fv!index,*/
+                                  /*size: "MEDIUM",*/
+                                  /*style: "STRONG"*/
+                                  /*)*/
+                                  
+                                },
+                                align: "CENTER"
+                              ),
+                              width: "MINIMIZE"
+                            ),
+                            a!sideBySideItem(
+                              item: a!richTextDisplayField(
+                                labelPosition: "COLLAPSED",
+                                value: {
+                                  a!richTextItem(text: upper(fv!item), size: "SMALL")
+                                },
+                                align: "LEFT"
+                              )
+                            )
+                          }
+                        )
+                      },
+                      height: "AUTO",
+                      style: "#efefef",
+                      marginBelow: "NONE",
+                      showBorder: false,
+                      accessibilityText: "Future step"
+                    )
+                  }
+                ),
+                /* Current step */
+                a!columnLayout(
+                  contents: {
+                    a!cardLayout(
+                      contents: {
+                        a!sideBySideLayout(
+                          items: {
+                            a!sideBySideItem(
+                              item: a!richTextDisplayField(
+                                labelPosition: "COLLAPSED",
+                                value: {
+                                  a!richTextItem(
+                                    text: {
+                                      a!richTextIcon(
+                                        icon: "hourglass-half",
+                                        altText: "Current step",
+                                        size: "SMALL"
+                                      )
+                                    },
+                                    size: "SMALL",
+                                    style: "STRONG"
+                                  )
+                                },
+                                align: "CENTER"
+                              ),
+                              width: "MINIMIZE"
+                            ),
+                            a!sideBySideItem(
+                              item: a!richTextDisplayField(
+                                labelPosition: "COLLAPSED",
+                                value: {
+                                  a!richTextItem(
+                                    text: upper(fv!item),
+                                    size: "SMALL",
+                                    style: "STRONG"
+                                  )
+                                },
+                                align: "LEFT"
+                              )
+                            )
+                          }
+                        )
+                      },
+                      style: "#8a9c8f",
+                      showBorder: false,
+                      accessibilityText: "Current step"
+                    )
+                  }
+                )
+              )
+            )
+          )
+        },
+        spacing: "DENSE",
+        stackWhen: { "PHONE", "TABLET_PORTRAIT" }
+      ),
+      choose(
+        local!currentMilestoneBarStep,
+        rule!SCMS_UI_ContractGeneralInformtion(
+          EditMode: ri!EditMode,
+          ViewOnly: ri!ViewOnly,
+          contract: ri!contract,
+          newContract: local!contract,
+          originalContract: if(
+            ri!New = true,
+            local!originalContract,
+            rule!SCMS_getOriginalContractsforAnContract(
+              contractNumber: ri!contract['recordType!{2ebb93da-5bd4-4067-8886-38d12d0d074e}Contract.fields.{d4e915d5-90cc-43b8-84a9-2f442d577c75}contractnumber'],
+              id: if(
+                or(ri!Amendment = true, ri!Revision = true),
+                null,
+                ri!contract['recordType!{2ebb93da-5bd4-4067-8886-38d12d0d074e}Contract.fields.{106ff119-dd71-437d-bed5-71e59d633cdb}id']
+              )
+            )
+          ),
+          New: ri!New,
+          Amendment: ri!Amendment,
+          Revision: ri!Revision,
+          ClientId: ri!ClientId,
+          AccountId: ri!AccountId
+        ),
+        rule!SCMS_UI_ContractRelatedParties(
+          contract: ri!contract,
+          New: ri!New,
+          Representatives: if(
+            ri!New = true,
+            local!Representatives,
+            local!previousRepresentatives
+          ),
+          ViewOnly: ri!ViewOnly,
+          ScadeaLocation: if(
+            ri!New = true,
+            local!ScadeaLocation,
+            local!previousScadeaLocation
+          ),
+          AccountLocation: if(
+            ri!New = true,
+            local!AccountLocation,
+            local!previousAccountLocation
+          ),
+          ScadeaEscalation: if(
+            ri!New = true,
+            local!ScadeaEscalation,
+            local!prevouosScadeaEscalation
+          ),
+          AccountEscalation: if(
+            ri!New = true,
+            local!AccountEscalation,
+            local!previousAccountEscalation
+          )
+        ),
+        rule!SCMS_UI_ContractArtifacts(
+          Portfolio: if(
+            ri!New = true,
+            local!Portfolio,
+            local!previousPortpolio,
+            
+          ),
+          contract: ri!contract,
+          New: ri!New,
+          ViewOnly: ri!ViewOnly,
+          AbbrevationArtifact: if(
+            ri!New = true,
+            local!AbbrevationArtifact,
+            local!previousAbbrevationArtifact
+          ),
+          ApplicationArtifact: if(
+            ri!New = true,
+            local!ApplicationArtifact,
+            local!previiousApplicationArtifact
+          )
+        ),
+        {
+          rule!SCMS_UI_ContractRoleAllocation(
+            /*save: local!saveStep4,*/
+            edit: or(ri!Revision, ri!EditMode, ri!Amendment),
+            viewOnly: ri!ViewOnly,
+            contractfinancial: if(
+              ri!New,
+              ri!contractFinancial,
+              local!financialGeneralInfo
+            ),
+            roleDetails: if(
+              ri!New,
+              ri!financialRole,
+              local!roleDetails
+            ),
+            /*financialBilling: if(*/
+            /*ri!New,*/
+            /*ri!financialBilling,*/
+            /*local!finacialBillingDetails*/
+            /*),*/
+            contractId: if(
+              ri!New,
+              index(local!contract, "id", ""),
+              ri!contract['recordType!{2ebb93da-5bd4-4067-8886-38d12d0d074e}Contract.fields.{106ff119-dd71-437d-bed5-71e59d633cdb}id']
+            )
+          ),
+          /*a!richTextDisplayField(*/
+          /*value: {*/
+          /*a!richTextItem(*/
+          /*text: {*/
+          /*"---- Add the role details and save the billing details of each role ----"*/
+          /*},*/
+          /*color: "#ff9900",*/
+          /*style: { "EMPHASIS", "STRONG" }*/
+          /*)*/
+          /*},*/
+          /*align: "CENTER"*/
+          /*)*/
+          
+        },
+        rule!SCMS_UI_ContractFinancials(
+          contractId: if(
+            ri!New,
+            property(local!contract, "id", ""),
+            /*index(ri!contract,"id","")*/
+            if(
+              or(ri!Amendment = true(), ri!Revision = true()),
+              if(
+                a!isNullOrEmpty(local!contract),
+                ri!contract['recordType!{2ebb93da-5bd4-4067-8886-38d12d0d074e}Contract.fields.{106ff119-dd71-437d-bed5-71e59d633cdb}id'],
+                property(local!contract, "id", "")
+              ),
+              ri!contract['recordType!{2ebb93da-5bd4-4067-8886-38d12d0d074e}Contract.fields.{106ff119-dd71-437d-bed5-71e59d633cdb}id']
+            )
+          ),
+          financialId: if(
+            ri!New,
+            property(ri!contractFinancial, "id", ""),
+            property(local!financialGeneralInfo, "id", "")
+          )
+        ),
+        rule!SCMS_UI_ContractDelivarablesDistribution(
+          discount: if(
+            ri!New,
+            property(ri!contractFinancial, "discount", ""),
+            property(
+              local!financialGeneralInfo,
+              "discount",
+              ""
+            )
+          ),
+          ViewOnly: ri!ViewOnly,
+          financialDeliverables: if(
+            ri!New,
+            ri!financialDeliverables,
+            local!deliverableDetails
+          ),
+          contractId: if(
+            ri!New,
+            index(ri!contractFinancial, "id", ""),
+            index(ri!contract, "id", "")
+          )
+        ),
+        rule!SCMS_UI_ContractDocument(
+          contract: if(
+            ri!New = true(),
+            local!contract.id,
+            ri!contract['recordType!{2ebb93da-5bd4-4067-8886-38d12d0d074e}Contract.fields.{106ff119-dd71-437d-bed5-71e59d633cdb}id']
+          ),
+          
+        ),
+        rule!SCMS_UI_Submission(
+          milestone_int: ri!milestone_int,
+          task_CDT: local!task,
+          status_txt: ri!formType_txt,
+          submissionType_txt: "Contract",
+          taskId_int: ri!taskId_int,
+          viewOnly: ri!ViewOnly,/*added fter UAT*/
+          referenceId: ri!contract['recordType!{2ebb93da-5bd4-4067-8886-38d12d0d074e}Contract.fields.{106ff119-dd71-437d-bed5-71e59d633cdb}id']/*added fter UAT*/
+        )
+      ),
+      a!columnsLayout(
+        columns: {
+          a!columnLayout(
+            contents: {
+              a!buttonArrayLayout(
+                buttons: {
+                  a!buttonWidget(
+                    label: "Previous",
+                    value: local!currentMilestoneBarStep - 1,
+                    saveInto: local!currentMilestoneBarStep,
+                    style: "NORMAL",
+                    showWhen: and(
+                      local!currentMilestoneBarStep > 1,
+                      local!currentMilestoneBarStep <> length(local!milestoneBarSteps)
+                    )
+                  )
+                },
+                align: "START"
+              )
+            }
+          ),
+          a!columnLayout(
+            contents: {
+              a!buttonArrayLayout(
+                buttons: {
+                  /*Show when not view only mode and when current step is 4, 5 and 6 */
+                  a!buttonWidget(
+                    label: "Save",
+                    validate: {
+                      if(
+                        or(
+                          a!isNullOrEmpty(ri!contractFinancial.contractType),
+                          a!isNullOrEmpty(ri!contractFinancial.discount),
+                          a!isNullOrEmpty(ri!contractFinancial.rateCardId)
+                        ),
+                        "Required fiels are empty",
+                        ""
+                      )
+                    },
+                    validationGroup: "validate",
+                    saveInto: {
+                      if(
+                        local!currentMilestoneBarStep = 4,
+                        {
+                          /*a!save(*/
+                          /*ri!financialBilling,*/
+                          /*a!forEach(*/
+                          /*items: ri!financialRole,*/
+                          /*expression: {*/
+                          /*append(*/
+                          /*local!financialBilling,*/
+                          /*rule!SCMS_calBillingForRoles(*/
+                          /*roleDetail: fv!item,*/
+                          /*contractId: local!contract.id,*/
+                          /*rateCardId: ri!contractFinancial.rateCardId,*/
+                          /*discount: ri!contractFinancial.discount,*/
+                          /*financialRoleId: fv!item.id*/
+                          /*)*/
+                          /*)*/
+                          /*}*/
+                          /*)*/
+                          /*                          */
+                          /*),*/
+                          if(
+                            ri!New,
+                            "",
+                            {
+                              /*a!save(*/
+                              /*ri!contractFinancial.contractId,*/
+                              /*ri!contract['recordType!{2ebb93da-5bd4-4067-8886-38d12d0d074e}Contract.fields.{106ff119-dd71-437d-bed5-71e59d633cdb}id']*/
+                              /*),*/
+                              if(
+                                or(ri!Amendment = true, ri!Revision = true),
+                                if(
+                                  a!isNullOrEmpty(local!financialGeneralInfo),
+                                  "",
+                                  a!forEach(
+                                    items: local!financialGeneralInfo,
+                                    expression: {
+                                      a!save(
+                                        fv!item.contractId,
+                                        property(local!contract, "id", "")
+                                      ),
+                                      a!save(fv!item.id, ""),
+                                      
+                                    }
+                                  )
+                                ),
+                                {
+                                  a!forEach(
+                                    items: local!financialGeneralInfo,
+                                    expression: {
+                                      a!save(fv!item.modifiedBy, loggedInUser()),
+                                      a!save(fv!item.modifiedOn, now()),
+                                      a!save(
+                                        fv!item.contractId,
+                                        ri!contract['recordType!{2ebb93da-5bd4-4067-8886-38d12d0d074e}Contract.fields.{106ff119-dd71-437d-bed5-71e59d633cdb}id']
+                                      )
+                                    }
+                                  ),
+                                  a!save(
+                                    ri!contractFinancial,
+                                    local!financialGeneralInfo
+                                  ),
+                                  
+                                }
+                              ),
+                              if(
+                                or(ri!Amendment = true, ri!Revision = true),
+                                if(
+                                  a!isNullOrEmpty(local!roleDetails),
+                                  "",
+                                  a!forEach(
+                                    items: local!roleDetails,
+                                    expression: {
+                                      a!save(
+                                        fv!item.contractId,
+                                        property(local!contract, "id", null)
+                                      ),
+                                      a!save(fv!item.id, "")
+                                    }
+                                  )
+                                ),
+                                {
+                                  a!forEach(
+                                    items: local!roleDetails,
+                                    expression: {
+                                      a!save(
+                                        fv!item.contractId,
+                                        ri!contract['recordType!{2ebb93da-5bd4-4067-8886-38d12d0d074e}Contract.fields.{106ff119-dd71-437d-bed5-71e59d633cdb}id']
+                                      ),
+                                      a!save(fv!item.modifiedBy, loggedInUser()),
+                                      a!save(fv!item.modifiedOn, now()),
+                                      
+                                    }
+                                  ),
+                                  a!save(ri!financialRole, local!roleDetails),
+                                  a!save(
+                                    ri!financialBilling,
+                                    local!finacialBillingDetails
+                                  ),
+                                  
+                                }
+                              ),
+                              
+                            }
+                          ),
+                          if(
+                            or(ri!Amendment = true, ri!Revision = true),
+                            a!startProcess(
+                              processModel: cons!SCMS_PM_CREATE_ROLE_ALLOCATION,
+                              processParameters: {
+                                contractFinancial: local!financialGeneralInfo,
+                                roleDetails: local!roleDetails,
+                                
+                              },
+                              onSuccess: {
+                                a!save(
+                                  local!roleDetails,
+                                  fv!processInfo.pv.roleDetails
+                                ),
+                                a!save(
+                                  local!finacialBillingDetails,
+                                  fv!processInfo.pv.financialBilling
+                                ),
+                                a!save(
+                                  local!financialGeneralInfo,
+                                  fv!processInfo.pv.contractFinancial
+                                ),
+                                
+                              }
+                            ),
+                            a!startProcess(
+                              processModel: cons!SCMS_PM_CREATE_ROLE_ALLOCATION,
+                              processParameters: {
+                                contractFinancial: ri!contractFinancial,
+                                roleDetails: ri!financialRole,
+                              },
+                              onSuccess: {
+                                a!save(
+                                  ri!financialRole,
+                                  fv!processInfo.pv.roleDetails
+                                ),
+                                a!save(
+                                  ri!financialBilling,
+                                  fv!processInfo.pv.financialBilling
+                                ),
+                                a!save(
+                                  ri!contractFinancial,
+                                  fv!processInfo.pv.contractFinancial
+                                ),
+                                /*a!save(*/
+                                /*local!financialGeneralInfo,*/
+                                /*fv!processInfo.pv.contractFinancial*/
+                                /*),*/
+                                /*a!save(local!roleDetails,fv!processInfo.pv.roleDetails),*/
+                                /*a!save(local!finacialBillingDetails,fv!processInfo.pv.financialBilling),*/
+                                
+                              }
+                            )/*a!save(local!financialGeneralInfo, ri!contractFinancial),*/
+                            /*a!save(local!finacialBillingDetails, ri!financialBilling),*/
+                            /*a!save( local!roleDetails, ri!financialRole),*/
+                            
+                          ),
+                          a!save(local!saveStep4, true()),
+                          
+                        },
+                        if(
+                          local!currentMilestoneBarStep = 6,
+                          {
+                            if(
+                              ri!New,
+                              {
+                                a!save(
+                                  ri!financialDeliverables.createdBy,
+                                  loggedInUser()
+                                ),
+                                a!save(
+                                  ri!financialDeliverables.createdOn,
+                                  now()
+                                ),
+                                a!save(
+                                  ri!financialDeliverables.isActive,
+                                  true()
+                                ),
+                                a!save(
+                                  ri!financialDeliverables.contractId,
+                                  local!contract.id
+                                ),
+                                
+                              },
+                              {
+                                a!save(
+                                  ri!financialDeliverables,
+                                  local!deliverableDetails
+                                ),
+                                a!save(
+                                  ri!financialDeliverables.modifiedBy,
+                                  loggedInUser()
+                                ),
+                                if(
+                                  or(ri!Amendment = true, ri!Revision = true),
+                                  if(
+                                    a!isNullOrEmpty(local!deliverableDetails),
+                                    "",
+                                    a!forEach(
+                                      items: local!deliverableDetails,
+                                      expression: {
+                                        a!save(
+                                          fv!item.contractId,
+                                          property(local!contract, "id", "")
+                                        ),
+                                        a!save(fv!item.id, ""),
+                                        
+                                      }
+                                    )
+                                  ),
+                                  a!save(
+                                    ri!financialDeliverables.contractId,
+                                    ri!contract['recordType!{2ebb93da-5bd4-4067-8886-38d12d0d074e}Contract.fields.{106ff119-dd71-437d-bed5-71e59d633cdb}id']
+                                  )
+                                ),
+                                a!save(
+                                  ri!financialDeliverables.modifiedOn,
+                                  now()
+                                ),
+                                a!save(
+                                  ri!financialDeliverables.isActive,
+                                  true()
+                                )
+                              }
+                            ),
+                            if(
+                              or(ri!Amendment = true, ri!Revision = true),
+                              a!startProcess(
+                                processModel: cons!SCMS_PM_FINANCIAL_DELIVERABLES,
+                                processParameters: {
+                                  financialDeliverables: local!deliverableDetails
+                                },
+                                onSuccess: {
+                                  a!save(local!deliverableDetails,
+                                  fv!processInfo.pv.financialDeliverables
+                                  )
+                                }
+                              ),
+                              a!startProcess(
+                                processModel: cons!SCMS_PM_FINANCIAL_DELIVERABLES,
+                                processParameters: {
+                                  financialDeliverables: ri!financialDeliverables
+                                },
+                                /*{*/
+                                /*financialDeliverables: rule!SCMS_getDifferentOfArrays(*/
+                                /*contractId: local!contract.id,*/
+                                /*financialDeliverables: ri!financialDeliverables*/
+                                /*)*/
+                                /*} ,*/
+                                onSuccess: {
+                                  a!save(
+                                    ri!financialDeliverables,
+                                    fv!processInfo.pv.financialDeliverables
+                                  )
+                                }
+                              ),
+                              
+                            ),
+                            /*a!save(*/
+                            /*local!currentMilestoneBarStep,*/
+                            /*local!currentMilestoneBarStep + 1*/
+                            /*)*/
+                            a!save(local!saveStep5, true())
+                          },
+                          ""
+                        )
+                      )
+                    },
+                    style: "PRIMARY",
+                    showWhen: if(
+                      ri!ViewOnly = true(),
+                      false(),
+                      if(
+                        and(
+                          contains({ 4, 6 }, local!currentMilestoneBarStep),
+                          if(
+                            ri!New,
+                            a!isNotNullOrEmpty(local!contract.id),
+                            ri!contract['recordType!{2ebb93da-5bd4-4067-8886-38d12d0d074e}Contract.fields.{106ff119-dd71-437d-bed5-71e59d633cdb}id']
+                          )
+                        ),
+                        {
+                          true()/*if(*/
+                          /*local!currentMilestoneBarStep = 4,*/
+                          /*if(*/
+                          /*and(*/
+                          /*a!isNullOrEmpty(ri!contractFinancial.contractType),*/
+                          /*a!isNullOrEmpty(ri!contractFinancial.discount),*/
+                          /*a!isNullOrEmpty(ri!contractFinancial.rateCardId)*/
+                          /*),*/
+                          /*false(),*/
+                          /*true()*/
+                          /*),*/
+                          /*                            */
+                          /*if(*/
+                          /*a!isNullOrEmpty(ri!financialDeliverables),*/
+                          /*false(),*/
+                          /*true()*/
+                          /*)*/
+                          /*                           */
+                          /*                            */
+                          /*)*/
+                          
+                        },
+                        false()
+                      )
+                    )
+                  ),
+                  /*Showed when not ViewOnly true and in only first step of process*/
+                  a!buttonWidget(
+                    label: "Save",
+                    saveInto: {
+                      if(
+                        a!isNullOrEmpty(ri!New),
+                        {
+                          a!save(
+                            local!contract.idDisplayValue,
+                            if(
+                              or(ri!Revision = true, ri!Amendment = true),
+                              rule!SCMS_generateDisplayNumberByType(type: "Contract"),
+                              ri!contract['recordType!{2ebb93da-5bd4-4067-8886-38d12d0d074e}Contract.fields.{5378d5cf-b53e-4cfb-add9-10b9b60adf4e}idDisplayValue']
+                            )
+                          ),
+                          a!save(
+                            local!contract.contractNumber,
+                            ri!contract['recordType!{2ebb93da-5bd4-4067-8886-38d12d0d074e}Contract.fields.{d4e915d5-90cc-43b8-84a9-2f442d577c75}contractnumber']
+                          ),
+                          a!save(
+                            local!contract.accountId,
+                            ri!contract['recordType!{2ebb93da-5bd4-4067-8886-38d12d0d074e}Contract.fields.{89a73a36-9e32-48dc-be7c-ff0823815e74}accountid']
+                          ),
+                          a!save(
+                            local!contract.clientId,
+                            ri!contract['recordType!{2ebb93da-5bd4-4067-8886-38d12d0d074e}Contract.fields.{69faea9e-4439-48d0-975c-03572b36d93e}clientid']
+                          ),
+                          a!save(
+                            local!contract.revisionNumber,
+                            if(
+                              ri!Revision = true,
+                              rule!SCMS_generateRevisionNumberForARevisioningContract(
+                                contractNumber: ri!contract['recordType!{2ebb93da-5bd4-4067-8886-38d12d0d074e}Contract.fields.{d4e915d5-90cc-43b8-84a9-2f442d577c75}contractnumber'],
+                                ammendmentNumber: ri!contract['recordType!{2ebb93da-5bd4-4067-8886-38d12d0d074e}Contract.fields.{30caec6f-6c73-4d54-8b24-66268fc4ab50}ammendmentnumber']
+                              ),
+                              ri!contract['recordType!{2ebb93da-5bd4-4067-8886-38d12d0d074e}Contract.fields.{d8d0da78-d967-478b-adb0-fc2039a2a26c}revisionnumber']
+                            )
+                          ),
+                          a!save(
+                            local!contract.ammendmentNumber,
+                            if(
+                              ri!Amendment = true,
+                              rule!SCMS_generateAmmendmentNumberForAnAmmendingContract(
+                                contractNumber: ri!contract['recordType!{2ebb93da-5bd4-4067-8886-38d12d0d074e}Contract.fields.{d4e915d5-90cc-43b8-84a9-2f442d577c75}contractnumber']
+                              ),
+                              ri!contract['recordType!{2ebb93da-5bd4-4067-8886-38d12d0d074e}Contract.fields.{30caec6f-6c73-4d54-8b24-66268fc4ab50}ammendmentnumber']
+                            )
+                          ),
+                          a!save(
+                            local!contract.id,
+                            if(
+                              ri!EditMode = true,
+                              ri!contract['recordType!{2ebb93da-5bd4-4067-8886-38d12d0d074e}Contract.fields.{106ff119-dd71-437d-bed5-71e59d633cdb}id'],
+                              null
+                            )
+                          ),
+                          a!save(
+                            local!contract.modifiedBy,
+                            loggedInUser()
+                          ),
+                          a!save(local!contract.modifiedOn, now()),
+                          a!save(local!contract.isActive, true),
+                          a!save(
+                            local!contract.contractCreationDate,
+                            ri!contract['recordType!{2ebb93da-5bd4-4067-8886-38d12d0d074e}Contract.fields.{2ca11f44-9d6c-4d45-a3ae-3c2bb1c8bcb3}contractcreationdate']
+                          ),
+                          a!save(local!contract.flag, "Draft"),
+                          a!save(
+                            local!contract.workOrderNumber,
+                            ri!contract['recordType!{2ebb93da-5bd4-4067-8886-38d12d0d074e}Contract.fields.{0ea4d5b2-1997-4072-9818-8946f479c332}workordernumber']
+                          ),
+                          a!save(
+                            local!contract.workOrderName,
+                            ri!contract['recordType!{2ebb93da-5bd4-4067-8886-38d12d0d074e}Contract.fields.{b5f08b83-959b-4288-820a-a87bbd5071dc}workordername']
+                          ),
+                          a!save(
+                            local!contract.contractCompletionDate,
+                            ri!contract['recordType!{2ebb93da-5bd4-4067-8886-38d12d0d074e}Contract.fields.{d549f9bd-f9fb-440a-8f43-d38252d113d8}contractcompletiondate']
+                          ),
+                          a!save(
+                            local!contract.commencementDate,
+                            ri!contract['recordType!{2ebb93da-5bd4-4067-8886-38d12d0d074e}Contract.fields.{3738e807-a926-4364-bd4f-7510ecb85450}commencementdate']
+                          ),
+                          a!save(
+                            local!contract.effectiveDate,
+                            ri!contract['recordType!{2ebb93da-5bd4-4067-8886-38d12d0d074e}Contract.fields.{4afc1192-1329-4768-adb3-29b6ede6a354}effectivedate']
+                          ),
+                          a!startProcess(
+                            processModel: cons!SCMS_PM_NEW_CONTRACT,
+                            processParameters: { contract: local!contract },
+                            onSuccess: a!save(
+                              local!contract.id,
+                              fv!processInfo.pv.contract.id
+                            )
+                          ),
+                          a!save(
+                            local!currentMilestoneBarStep,
+                            local!currentMilestoneBarStep + 1
+                          )
+                        },
+                        {
+                          a!save(
+                            local!contract.idDisplayValue,
+                            rule!SCMS_generateDisplayNumberByType(type: "Contract")
+                          ),
+                          a!save(
+                            local!contract.contractNumber,
+                            rule!SCMS_generateContractNumberForANewContract()
+                          ),
+                          a!save(local!contract.accountId, ri!AccountId),
+                          a!save(local!contract.clientId, ri!ClientId),
+                          a!save(local!contract.revisionNumber, 0),
+                          a!save(local!contract.ammendmentNumber, 0),
+                          a!save(local!contract.id, null),
+                          a!save(
+                            local!contract.createdBy,
+                            loggedInUser()
+                          ),
+                          a!save(local!contract.createdOn, now()),
+                          a!save(local!contract.isActive, true),
+                          a!save(
+                            local!contract.contractCreationDate,
+                            today()
+                          ),
+                          a!save(local!contract.flag, "Draft"),
+                          a!startProcess(
+                            processModel: cons!SCMS_PM_NEW_CONTRACT,
+                            processParameters: {
+                              contract: local!contract,
+                              contractIdBackToUI: null
+                            },
+                            onSuccess: {
+                              a!save(
+                                local!contractIdNewlyCreated,
+                                fv!processInfo.pv.contractIdBackToUI
+                              ),
+                              a!save(
+                                local!contract.id,
+                                local!contractIdNewlyCreated
+                              )
+                            }
+                          )
+                        }
+                      )
+                    },
+                    style: "NORMAL",
+                    showWhen: and(
+                      local!currentMilestoneBarStep = 1,
+                      ri!ViewOnly <> true
+                    )
+                  ),
+                  /*Showed when not ViewOnly true and in only second step of process*/
+                  a!buttonWidget(
+                    label: "Save",
+                    saveInto: {
+                      if(
+                        ri!New = true(),
+                        {
+                          a!save(
+                            local!Representatives.contractId,
+                            local!contract.id
+                          ),
+                          a!save(
+                            local!ScadeaLocation.contractId,
+                            local!contract.id
+                          ),
+                          a!save(
+                            local!AccountLocation.contractId,
+                            local!contract.id
+                          ),
+                          a!save(
+                            local!ScadeaEscalation.contractId,
+                            local!contract.id
+                          ),
+                          a!save(
+                            local!AccountEscalation.contractId,
+                            local!contract.id
+                          ),
+                          a!save(
+                            local!Representatives.createdBy,
+                            loggedInUser()
+                          ),
+                          a!save(
+                            local!ScadeaLocation.createdBy,
+                            loggedInUser()
+                          ),
+                          a!save(
+                            local!AccountLocation.createdBy,
+                            loggedInUser()
+                          ),
+                          a!save(
+                            local!ScadeaEscalation.createdBy,
+                            loggedInUser()
+                          ),
+                          a!save(
+                            local!AccountEscalation.createdBy,
+                            loggedInUser()
+                          ),
+                          a!save(local!Representatives.createdOn, now()),
+                          a!save(local!ScadeaLocation.createdOn, now()),
+                          a!save(local!AccountLocation.createdOn, now()),
+                          a!save(local!ScadeaEscalation.createdOn, now()),
+                          a!save(
+                            local!AccountEscalation.createdOn,
+                            now()
+                          ),
+                          a!save(local!Representatives.isActive, true()),
+                          a!save(local!ScadeaLocation.isActive, true()),
+                          a!save(local!AccountLocation.isActive, true()),
+                          a!save(local!ScadeaEscalation.isActive, true()),
+                          a!save(
+                            local!AccountEscalation.isActive,
+                            true()
+                          )
+                        },
+                        ""
+                      ),
+                      if(
+                        a!isNullOrEmpty(ri!New),
+                        {
+                          if(
+                            or(ri!Amendment = true, ri!Revision = true),
+                            if(
+                              a!isNullOrEmpty(local!previousRepresentatives),
+                              null,
+                              a!forEach(
+                                items: local!previousRepresentatives,
+                                expression: {
+                                  a!save(
+                                    fv!item.contractId,
+                                    property(local!contract, "id", null)
+                                  ),
+                                  a!save(fv!item.id, ""),
+                                  a!save(fv!item.createdBy, loggedInUser()),
+                                  a!save(fv!item.createdOn, now()),
+                                  a!save(fv!item.isActive, 1)
+                                }
+                              )
+                            ),
+                            if(
+                              a!isNullOrEmpty(local!previousRepresentatives),
+                              null,
+                              {
+                                a!save(
+                                  local!Representatives,
+                                  local!previousRepresentatives
+                                ),
+                                a!forEach(
+                                  items: local!Representatives,
+                                  expression: {
+                                    a!save(fv!item.modifiedBy, loggedInUser()),
+                                    a!save(fv!item.modifiedOn, now()),
+                                    a!save(fv!item.isActive, 1)
+                                  }
+                                )
+                              }
+                            )
+                          ),
+                          if(
+                            or(ri!Amendment = true, ri!Revision = true),
+                            if(
+                              a!isNullOrEmpty(local!previousScadeaLocation),
+                              null,
+                              a!forEach(
+                                items: local!previousScadeaLocation,
+                                expression: {
+                                  a!save(
+                                    fv!item.contractId,
+                                    property(local!contract, "id", null)
+                                  ),
+                                  a!save(fv!item.id, ""),
+                                  a!save(fv!item.createdBy, loggedInUser()),
+                                  a!save(fv!item.createdOn, now()),
+                                  a!save(fv!item.isActive, 1)
+                                }
+                              )
+                            ),
+                            if(
+                              a!isNullOrEmpty(local!previousScadeaLocation),
+                              null,
+                              {
+                                a!save(
+                                  local!ScadeaLocation,
+                                  local!previousScadeaLocation
+                                ),
+                                a!forEach(
+                                  items: local!ScadeaLocation,
+                                  expression: {
+                                    a!save(fv!item.modifiedBy, loggedInUser()),
+                                    a!save(fv!item.modifiedOn, now()),
+                                    a!save(fv!item.isActive, 1)
+                                  }
+                                )
+                              }
+                            )
+                          ),
+                          if(
+                            or(ri!Amendment = true, ri!Revision = true),
+                            if(
+                              a!isNullOrEmpty(local!previousAccountLocation),
+                              null,
+                              a!forEach(
+                                items: local!previousAccountLocation,
+                                expression: {
+                                  a!save(
+                                    fv!item.contractId,
+                                    property(local!contract, "id", null)
+                                  ),
+                                  a!save(fv!item.id, ""),
+                                  a!save(fv!item.createdBy, loggedInUser()),
+                                  a!save(fv!item.createdOn, now()),
+                                  a!save(fv!item.isActive, 1)
+                                }
+                              )
+                            ),
+                            if(
+                              a!isNullOrEmpty(local!previousAccountLocation),
+                              null,
+                              {
+                                a!save(
+                                  local!AccountLocation,
+                                  local!previousAccountLocation
+                                ),
+                                a!forEach(
+                                  items: local!AccountLocation,
+                                  expression: {
+                                    a!save(fv!item.modifiedBy, loggedInUser()),
+                                    a!save(fv!item.modifiedOn, now()),
+                                    a!save(fv!item.isActive, 1)
+                                  }
+                                )
+                              }
+                            )
+                          ),
+                          if(
+                            or(ri!Amendment = true, ri!Revision = true),
+                            if(
+                              a!isNullOrEmpty(local!prevouosScadeaEscalation),
+                              null,
+                              a!forEach(
+                                items: local!prevouosScadeaEscalation,
+                                expression: {
+                                  a!save(
+                                    fv!item.contractId,
+                                    property(local!contract, "id", null)
+                                  ),
+                                  a!save(fv!item.id, ""),
+                                  a!save(fv!item.createdBy, loggedInUser()),
+                                  a!save(fv!item.createdOn, now()),
+                                  a!save(fv!item.isActive, 1)
+                                }
+                              )
+                            ),
+                            if(
+                              a!isNullOrEmpty(local!prevouosScadeaEscalation),
+                              null,
+                              {
+                                a!save(
+                                  local!ScadeaEscalation,
+                                  local!prevouosScadeaEscalation
+                                ),
+                                a!forEach(
+                                  items: local!ScadeaEscalation,
+                                  expression: {
+                                    a!save(fv!item.modifiedBy, loggedInUser()),
+                                    a!save(fv!item.modifiedOn, now()),
+                                    a!save(fv!item.isActive, 1)
+                                  }
+                                )
+                              }
+                            )
+                          ),
+                          if(
+                            or(ri!Amendment = true, ri!Revision = true),
+                            if(
+                              a!isNullOrEmpty(local!previousAccountEscalation),
+                              null,
+                              a!forEach(
+                                items: local!previousAccountEscalation,
+                                expression: {
+                                  a!save(
+                                    fv!item.contractId,
+                                    property(local!contract, "id", null)
+                                  ),
+                                  a!save(fv!item.id, ""),
+                                  a!save(fv!item.createdBy, loggedInUser()),
+                                  a!save(fv!item.createdOn, now()),
+                                  a!save(fv!item.isActive, 1)
+                                }
+                              )
+                            ),
+                            if(
+                              a!isNullOrEmpty(local!previousAccountEscalation),
+                              null,
+                              {
+                                a!save(
+                                  local!AccountEscalation,
+                                  local!previousAccountEscalation
+                                ),
+                                a!forEach(
+                                  items: local!AccountEscalation,
+                                  expression: {
+                                    a!save(fv!item.modifiedBy, loggedInUser()),
+                                    a!save(fv!item.modifiedOn, now()),
+                                    a!save(fv!item.isActive, 1)
+                                  }
+                                )
+                              }
+                            )
+                          )
+                        },
+                        ""
+                      ),
+                      if(
+                        or(ri!Amendment = true, ri!Revision = true),
+                        a!startProcess(
+                          processModel: cons!SCMS_PM_CREATE_RELATED_PARTIES,
+                          processParameters: {
+                            representatives: local!previousRepresentatives,
+                            serviceLocation: local!previousScadeaLocation,
+                            accountLocation: local!previousAccountLocation,
+                            companyEscalation: local!prevouosScadeaEscalation,
+                            accountEscalation: local!previousAccountEscalation,
+                            
+                          }
+                        ),
+                        a!startProcess(
+                          processModel: cons!SCMS_PM_CREATE_RELATED_PARTIES,
+                          processParameters: {
+                            representatives: local!Representatives,
+                            serviceLocation: local!ScadeaLocation,
+                            accountLocation: local!AccountLocation,
+                            companyEscalation: local!ScadeaEscalation,
+                            accountEscalation: local!AccountEscalation,
+                            
+                          },
+                          onSuccess: {
+                            a!save(
+                              local!Representatives,
+                              fv!processInfo.pv.representatives
+                            ),
+                            a!save(
+                              local!ScadeaLocation,
+                              fv!processInfo.pv.serviceLocation
+                            ),
+                            a!save(
+                              local!AccountLocation,
+                              fv!processInfo.pv.accountLocation
+                            ),
+                            a!save(
+                              local!ScadeaEscalation,
+                              fv!processInfo.pv.companyEscalation
+                            ),
+                            a!save(
+                              local!AccountEscalation,
+                              fv!processInfo.pv.accountEscalation
+                            )
+                          }
+                        )
+                      ),
+                      
+                    },
+                    style: "PRIMARY",
+                    showWhen: and(
+                      or(
+                        a!isNotNullOrEmpty(local!contract.id),
+                        a!isNotNullOrEmpty(
+                          ri!contract['recordType!{2ebb93da-5bd4-4067-8886-38d12d0d074e}Contract.fields.{106ff119-dd71-437d-bed5-71e59d633cdb}id']
+                        )
+                      ),
+                      ri!ViewOnly <> true,
+                      local!currentMilestoneBarStep = 2
+                    )
+                  ),
+                  /*Showed when not ViewOnly true and in only third step of process*/
+                  a!buttonWidget(
+                    label: "Save",
+                    saveInto: {
+                      if(
+                        ri!New = true(),
+                        {
+                          a!save(
+                            local!AbbrevationArtifact.contractId,
+                            local!contract.id
+                          ),
+                          a!save(
+                            local!ApplicationArtifact.contractId,
+                            local!contract.id
+                          ),
+                          a!save(
+                            local!Portfolio.contractId,
+                            local!contract.id
+                          ),
+                          a!save(
+                            local!AbbrevationArtifact.createdBy,
+                            loggedInUser()
+                          ),
+                          a!save(
+                            local!ApplicationArtifact.createdBy,
+                            loggedInUser()
+                          ),
+                          a!save(
+                            local!Portfolio.createdBy,
+                            loggedInUser()
+                          ),
+                          a!save(
+                            local!AbbrevationArtifact.createdOn,
+                            now()
+                          ),
+                          a!save(
+                            local!ApplicationArtifact.createdOn,
+                            now()
+                          ),
+                          a!save(local!Portfolio.createdOn, now()),
+                          a!save(
+                            local!AbbrevationArtifact.isActive,
+                            true()
+                          ),
+                          a!save(
+                            local!ApplicationArtifact.isActive,
+                            true()
+                          ),
+                          a!save(local!Portfolio.isActive, true())
+                        },
+                        ""
+                      ),
+                      if(
+                        a!isNullOrEmpty(ri!New),
+                        {
+                          if(
+                            or(ri!Amendment = true, ri!Revision = true),
+                            if(
+                              a!isNullOrEmpty(local!previousAbbrevationArtifact),
+                              null,
+                              a!forEach(
+                                items: local!previousAbbrevationArtifact,
+                                expression: {
+                                  a!save(
+                                    fv!item.contractId,
+                                    property(local!contract, "id", null)
+                                  ),
+                                  a!save(fv!item.id, ""),
+                                  a!save(fv!item.createdBy, loggedInUser()),
+                                  a!save(fv!item.createdOn, now()),
+                                  a!save(fv!item.isActive, 1)
+                                }
+                              )
+                            ),
+                            if(
+                              a!isNullOrEmpty(local!previousAbbrevationArtifact),
+                              null,
+                              {
+                                a!save(
+                                  local!AbbrevationArtifact,
+                                  local!previousAbbrevationArtifact
+                                ),
+                                a!forEach(
+                                  items: local!AbbrevationArtifact,
+                                  expression: {
+                                    a!save(fv!item.modifiedBy, loggedInUser()),
+                                    a!save(fv!item.modifiedOn, now()),
+                                    a!save(fv!item.isActive, 1)
+                                  }
+                                )
+                              }
+                            )
+                          ),
+                          if(
+                            or(ri!Amendment = true, ri!Revision = true),
+                            if(
+                              a!isNullOrEmpty(local!previiousApplicationArtifact),
+                              null,
+                              a!forEach(
+                                items: local!previiousApplicationArtifact,
+                                expression: {
+                                  a!save(
+                                    fv!item.contractId,
+                                    property(local!contract, "id", null)
+                                  ),
+                                  a!save(fv!item.id, ""),
+                                  a!save(fv!item.createdBy, loggedInUser()),
+                                  a!save(fv!item.createdOn, now()),
+                                  a!save(fv!item.isActive, 1)
+                                }
+                              )
+                            ),
+                            if(
+                              a!isNullOrEmpty(local!previiousApplicationArtifact),
+                              null,
+                              {
+                                a!save(
+                                  local!ApplicationArtifact,
+                                  local!previiousApplicationArtifact
+                                ),
+                                a!forEach(
+                                  items: local!ApplicationArtifact,
+                                  expression: {
+                                    a!save(fv!item.modifiedBy, loggedInUser()),
+                                    a!save(fv!item.modifiedOn, now()),
+                                    a!save(fv!item.isActive, 1)
+                                  }
+                                )
+                              }
+                            )
+                          ),
+                          if(
+                            or(ri!Amendment = true, ri!Revision = true),
+                            if(
+                              a!isNullOrEmpty(local!previousPortpolio),
+                              null,
+                              a!forEach(
+                                items: local!previousPortpolio,
+                                expression: {
+                                  a!save(
+                                    fv!item.contractId,
+                                    property(local!contract, "id", null)
+                                  ),
+                                  a!save(fv!item.id, ""),
+                                  a!save(fv!item.createdBy, loggedInUser()),
+                                  a!save(fv!item.createdOn, now()),
+                                  a!save(fv!item.isActive, 1)
+                                }
+                              )
+                            ),
+                            if(
+                              a!isNullOrEmpty(local!previousPortpolio),
+                              null,
+                              {
+                                a!save(
+                                  local!Portfolio,
+                                  local!previousPortpolio
+                                ),
+                                a!forEach(
+                                  items: local!Portfolio,
+                                  expression: {
+                                    a!save(fv!item.modifiedBy, loggedInUser()),
+                                    a!save(fv!item.modifiedOn, now()),
+                                    a!save(fv!item.isActive, 1)
+                                  }
+                                )
+                              }
+                            )
+                          )
+                        },
+                        ""
+                      ),
+                      if(
+                        or(ri!Amendment = true, ri!Revision = true),
+                        a!startProcess(
+                          processModel: cons!SCMS_PM_CREATE_ARTIFACTS,
+                          processParameters: {
+                            abbreviationArtifacts: local!previousAbbrevationArtifact,
+                            applicationArtifacts: local!previiousApplicationArtifact,
+                            contractPortfolio: local!previousPortpolio
+                          }
+                        ),
+                        a!startProcess(
+                          processModel: cons!SCMS_PM_CREATE_ARTIFACTS,
+                          processParameters: {
+                            abbreviationArtifacts: local!AbbrevationArtifact,
+                            applicationArtifacts: local!ApplicationArtifact,
+                            contractPortfolio: local!Portfolio
+                          },
+                          onSuccess: {
+                            a!save(
+                              local!AbbrevationArtifact,
+                              fv!processInfo.pv.abbreviationArtifacts
+                            ),
+                            a!save(
+                              local!ApplicationArtifact,
+                              fv!processInfo.pv.applicationArtifacts
+                            ),
+                            a!save(
+                              local!Portfolio,
+                              fv!processInfo.pv.contractPortfolio
+                            ),
+                            
+                          }
+                        ),
+                        
+                      )/*a!save(*/
+                      /*local!currentMilestoneBarStep,*/
+                      /*local!currentMilestoneBarStep + 1*/
+                      /*)*/
+                      
+                    },
+                    style: "PRIMARY",
+                    showWhen: and(
+                      or(
+                        a!isNotNullOrEmpty(local!contract.id),
+                        a!isNotNullOrEmpty(
+                          ri!contract['recordType!{2ebb93da-5bd4-4067-8886-38d12d0d074e}Contract.fields.{106ff119-dd71-437d-bed5-71e59d633cdb}id']
+                        )
+                      ),
+                      ri!ViewOnly <> true,
+                      local!currentMilestoneBarStep = 3
+                    )
+                  ),
+                  /*Only for navigation*/
+                  a!buttonWidget(
+                    label: "Next",
+                    saveInto: a!save(
+                      local!currentMilestoneBarStep,
+                      local!currentMilestoneBarStep + 1
+                    ),
+                    style: "PRIMARY",
+                    disabled: if(
+                      or(
+                        ri!New = true,
+                        ri!Amendment = true,
+                        ri!Revision = true
+                      ),
+                      a!isNullOrEmpty(local!contract.id),
+                      a!isNullOrEmpty(
+                        ri!contract['recordType!{2ebb93da-5bd4-4067-8886-38d12d0d074e}Contract.fields.{106ff119-dd71-437d-bed5-71e59d633cdb}id']
+                      )
+                    ),
+                    showWhen: and(
+                      local!currentMilestoneBarStep <> length(local!milestoneBarSteps)
+                    ),
+                   
+                    confirmHeader: if(
+                      ri!ViewOnly,
+                      "",
+                      "Have you saved your data using the save button?"
+                    )
+                  )
+                },
+                align: "END"
+              )
+            }
+          )
+        }
+      )
+    }
+  )
+}
