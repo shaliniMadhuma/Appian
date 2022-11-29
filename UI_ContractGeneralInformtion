@@ -1,0 +1,767 @@
+a!localVariables(
+  local!newContractNumber: rule!SCMS_generateContractNumberForANewContract(),
+  {
+    a!boxLayout(
+      label: "Contract Details",
+      contents: {
+        a!columnsLayout(
+          columns: {
+            a!columnLayout(
+              contents: {
+                a!sideBySideLayout(
+                  items: {
+                    /*a!sideBySideItem(*/
+                    /*item: a!textField(*/
+                    /*label: "Parent Contract #",*/
+                    /*labelPosition: "ABOVE",*/
+                    /*value: if(*/
+                    /*or(*/
+                    /*ri!EditMode = true,*/
+                    /*ri!ViewOnly = true,*/
+                    /*ri!Amendment = true,*/
+                    /*ri!Revision = true,*/
+                    /*a!isNullOrEmpty(ri!New)*/
+                    /*),*/
+                    /*ri!contract['recordType!{2ebb93da-5bd4-4067-8886-38d12d0d074e}Contract.fields.{d4e915d5-90cc-43b8-84a9-2f442d577c75}contractnumber'],*/
+                    /*local!newContractNumber*/
+                    /*),*/
+                    /*refreshAfter: "UNFOCUS",*/
+                    /*readOnly: true(),*/
+                    /*validations: {}*/
+                    /*)*/
+                    /*),*/
+                    a!sideBySideItem(
+                      item: a!textField(
+                        label: "Contract #",
+                        labelPosition: "ABOVE",
+                        value: if(
+                          or(ri!EditMode = true, ri!ViewOnly = true),
+                          ri!contract['recordType!{2ebb93da-5bd4-4067-8886-38d12d0d074e}Contract.fields.{5378d5cf-b53e-4cfb-add9-10b9b60adf4e}idDisplayValue'],
+                          ri!newContract.idDisplayValue
+                        ),
+                        /*showWhen: or(ri!EditMode = true, ri!ViewOnly = true),*/
+                        refreshAfter: "UNFOCUS",
+                        readOnly: true(),
+                        validations: {},
+                        showWhen: if(
+                          or(
+                            ri!Revision = true,
+                            ri!Amendment = true,
+                            ri!New = true
+                          ),
+                          a!isNotNullOrEmpty(ri!newContract.id),
+                          a!isNotNullOrEmpty(
+                            ri!contract['recordType!{2ebb93da-5bd4-4067-8886-38d12d0d074e}Contract.fields.{106ff119-dd71-437d-bed5-71e59d633cdb}id']
+                          )
+                        ),
+                        
+                      )
+                    )/*,a!sideBySideItem(),*/
+                    /*a!sideBySideItem(*/
+                    /*item: a!textField(*/
+                    /*label: "Contract Name",*/
+                    /*labelPosition: "ABOVE",*/
+                    /*value: if(*/
+                    /*or(*/
+                    /*ri!EditMode = true,*/
+                    /*ri!ViewOnly = true,*/
+                    /*ri!Amendment = true,*/
+                    /*ri!Revision = true,*/
+                    /*a!isNullOrEmpty(ri!New)*/
+                    /*),*/
+                    /*ri!contract['recordType!{2ebb93da-5bd4-4067-8886-38d12d0d074e}Contract.fields.{26bb4c25-d5e9-42df-974a-b2512cf9f529}contractname'],*/
+                    /*ri!newContract.contractName*/
+                    /*),*/
+                    /*saveInto: {*/
+                    /*if(*/
+                    /*ri!New = true,*/
+                    /*{*/
+                    /*ri!newContract.contractName,*/
+                    /*a!save(*/
+                    /*ri!newContract.contractNumber,*/
+                    /*local!newContractNumber*/
+                    /*),*/
+                    /*a!save(ri!newContract.accountId, ri!AccountId),*/
+                    /*a!save(ri!newContract.clientId, ri!ClientId),*/
+                    /*a!save(ri!newContract.revisionNumber, 0),*/
+                    /*a!save(ri!newContract.ammendmentNumber, 0),*/
+                    /*a!save(ri!newContract.id, null),*/
+                    /*a!save(*/
+                    /*ri!newContract.createdBy,*/
+                    /*loggedInUser()*/
+                    /*),*/
+                    /*a!save(ri!newContract.createdOn, now()),*/
+                    /*a!save(ri!newContract.isActive, true),*/
+                    /*a!save(*/
+                    /*ri!newContract.contractCreationDate,*/
+                    /*today()*/
+                    /*),*/
+                    /*a!save(ri!newContract.flag, "Draft")*/
+                    /*},*/
+                    /*{*/
+                    /*ri!contract['recordType!{2ebb93da-5bd4-4067-8886-38d12d0d074e}Contract.fields.{26bb4c25-d5e9-42df-974a-b2512cf9f529}contractname']*/
+                    /*}*/
+                    /*)*/
+                    /*},*/
+                    /*refreshAfter: "UNFOCUS",*/
+                    /*required: true,*/
+                    /*readOnly: ri!ViewOnly = true(),*/
+                    /*validations: {}*/
+                    /*)*/
+                    /*)*/
+                    
+                  }
+                ),
+                a!sideBySideLayout(
+                  items: {
+                    a!sideBySideItem(
+                      item: a!textField(
+                        label: "Client #",
+                        labelPosition: "ABOVE",
+                        value: if(
+                          or(
+                            ri!EditMode = true,
+                            ri!ViewOnly = true,
+                            ri!Amendment = true,
+                            ri!Revision = true,
+                            a!isNullOrEmpty(ri!New)
+                          ),
+                          if(
+                            a!isNullOrEmpty(
+                              ri!contract['recordType!{2ebb93da-5bd4-4067-8886-38d12d0d074e}Contract.fields.{69faea9e-4439-48d0-975c-03572b36d93e}clientid']
+                            ),
+                            {},
+                            rule!SCMS_QE_getClientById(
+                              ri!contract['recordType!{2ebb93da-5bd4-4067-8886-38d12d0d074e}Contract.fields.{69faea9e-4439-48d0-975c-03572b36d93e}clientid']
+                            )['recordType!{10f1ed47-8ea3-4f35-90d3-979bc14b4528}Client.fields.{10a47216-fc99-48e4-a0a9-edc2be35c3a1}iddisplayvalue']
+                          ),
+                          rule!SCMS_QE_getClientById(ri!ClientId)['recordType!{10f1ed47-8ea3-4f35-90d3-979bc14b4528}Client.fields.{10a47216-fc99-48e4-a0a9-edc2be35c3a1}iddisplayvalue']
+                        ),
+                        refreshAfter: "UNFOCUS",
+                        readOnly: true(),
+                        validations: {}
+                      )
+                    ),
+                    a!sideBySideItem(),
+                    a!sideBySideItem(
+                      item: a!textField(
+                        label: "Client Name",
+                        labelPosition: "ABOVE",
+                        value: if(
+                          or(
+                            ri!EditMode = true,
+                            ri!ViewOnly = true,
+                            ri!Amendment = true,
+                            ri!Revision = true,
+                            a!isNullOrEmpty(ri!New)
+                          ),
+                          rule!SCMS_QE_getClientNameById(
+                            ri!contract['recordType!{2ebb93da-5bd4-4067-8886-38d12d0d074e}Contract.fields.{69faea9e-4439-48d0-975c-03572b36d93e}clientid']
+                          ),
+                          rule!SCMS_QE_getClientNameById(ri!ClientId)
+                        ),
+                        saveInto: {},
+                        refreshAfter: "UNFOCUS",
+                        readOnly: true(),
+                        validations: {}
+                      )
+                    )
+                  }
+                ),
+                a!sideBySideLayout(
+                  items: {
+                    a!sideBySideItem(
+                      item: a!textField(
+                        label: "Account #",
+                        labelPosition: "ABOVE",
+                        value: if(
+                          or(
+                            ri!EditMode = true,
+                            ri!ViewOnly = true,
+                            ri!Amendment = true,
+                            ri!Revision = true,
+                            a!isNullOrEmpty(ri!New)
+                          ),
+                          if(
+                            a!isNullOrEmpty(
+                              ri!contract['recordType!{2ebb93da-5bd4-4067-8886-38d12d0d074e}Contract.fields.{89a73a36-9e32-48dc-be7c-ff0823815e74}accountid']
+                            ),
+                            {},
+                            rule!SCMS_QE_getAccountById(
+                              ri!contract['recordType!{2ebb93da-5bd4-4067-8886-38d12d0d074e}Contract.fields.{89a73a36-9e32-48dc-be7c-ff0823815e74}accountid']
+                            )['recordType!{38a3b77a-1681-4e30-aa0e-1a5eae9b9d33}Account.fields.{85a82564-1282-412a-9be2-cb647f23be4e}idDisplayValue']
+                          ),
+                          rule!SCMS_QE_getAccountById(ri!AccountId)['recordType!{38a3b77a-1681-4e30-aa0e-1a5eae9b9d33}Account.fields.{85a82564-1282-412a-9be2-cb647f23be4e}idDisplayValue']
+                        ),
+                        refreshAfter: "UNFOCUS",
+                        readOnly: true(),
+                        validations: {}
+                      )
+                    ),
+                    a!sideBySideItem(),
+                    a!sideBySideItem(
+                      item: a!textField(
+                        label: "Account Name",
+                        labelPosition: "ABOVE",
+                        value: if(
+                          or(
+                            ri!EditMode = true,
+                            ri!ViewOnly = true,
+                            ri!Amendment = true,
+                            ri!Revision = true,
+                            a!isNullOrEmpty(ri!New)
+                          ),
+                          rule!SCMS_QE_getAccountNameById(
+                            ri!contract['recordType!{2ebb93da-5bd4-4067-8886-38d12d0d074e}Contract.fields.{89a73a36-9e32-48dc-be7c-ff0823815e74}accountid']
+                          ),
+                          rule!SCMS_QE_getAccountNameById(ri!AccountId)
+                        ),
+                        refreshAfter: "UNFOCUS",
+                        readOnly: true(),
+                        validations: {}
+                      )
+                    )
+                  }
+                ),
+                a!sideBySideLayout(
+                  items: {
+                    a!sideBySideItem(
+                      item: a!textField(
+                        label: "Work Order #",
+                        labelPosition: "ABOVE",
+                        value: if(
+                          or(
+                            ri!EditMode = true,
+                            ri!ViewOnly = true,
+                            ri!Amendment = true,
+                            ri!Revision = true,
+                            a!isNullOrEmpty(ri!New)
+                          ),
+                          ri!contract['recordType!{2ebb93da-5bd4-4067-8886-38d12d0d074e}Contract.fields.{0ea4d5b2-1997-4072-9818-8946f479c332}workordernumber'],
+                          ri!newContract.workOrderNumber
+                        ),
+                        saveInto: {
+                          if(
+                            ri!New = true,
+                            {
+                              ri!newContract.workOrderNumber,
+                              a!save(
+                                ri!newContract.contractNumber,
+                                local!newContractNumber
+                              ),
+                              a!save(ri!newContract.accountId, ri!AccountId),
+                              a!save(ri!newContract.clientId, ri!ClientId),
+                              a!save(ri!newContract.revisionNumber, 0),
+                              a!save(ri!newContract.ammendmentNumber, 0),
+                              a!save(ri!newContract.id, null),
+                              a!save(
+                                ri!newContract.createdBy,
+                                loggedInUser()
+                              ),
+                              a!save(ri!newContract.createdOn, now()),
+                              a!save(ri!newContract.isActive, true),
+                              a!save(
+                                ri!newContract.contractCreationDate,
+                                today()
+                              ),
+                              a!save(ri!newContract.flag, "Draft")
+                            },
+                            {
+                              ri!contract['recordType!{2ebb93da-5bd4-4067-8886-38d12d0d074e}Contract.fields.{0ea4d5b2-1997-4072-9818-8946f479c332}workordernumber']
+                            }
+                          )
+                        },
+                        refreshAfter: "UNFOCUS",
+                        required: true,
+                        readOnly: ri!ViewOnly = true(),
+                        validations: {}
+                      )
+                    ),
+                    a!sideBySideItem(),
+                    a!sideBySideItem(
+                      item: a!textField(
+                        label: "Work Order Name",
+                        labelPosition: "ABOVE",
+                        value: if(
+                          or(
+                            ri!EditMode = true,
+                            ri!ViewOnly = true,
+                            ri!Amendment = true,
+                            ri!Revision = true,
+                            a!isNullOrEmpty(ri!New)
+                          ),
+                          ri!contract['recordType!{2ebb93da-5bd4-4067-8886-38d12d0d074e}Contract.fields.{b5f08b83-959b-4288-820a-a87bbd5071dc}workordername'],
+                          ri!newContract.workOrderName
+                        ),
+                        saveInto: {
+                          if(
+                            or(
+                              ri!EditMode = true,
+                              ri!ViewOnly = true,
+                              ri!Amendment = true,
+                              ri!Revision = true,
+                              a!isNullOrEmpty(ri!New)
+                            ),
+                            ri!contract['recordType!{2ebb93da-5bd4-4067-8886-38d12d0d074e}Contract.fields.{b5f08b83-959b-4288-820a-a87bbd5071dc}workordername'],
+                            ri!newContract.workOrderName
+                          )
+                        },
+                        refreshAfter: "UNFOCUS",
+                        required: true,
+                        readOnly: ri!ViewOnly = true(),
+                        validations: {}
+                      )
+                    )
+                  }
+                ),
+                a!sideBySideLayout(
+                  items: {
+                    a!sideBySideItem(
+                      item: a!integerField(
+                        label: "Revision #",
+                        labelPosition: "ABOVE",
+                        value: if(
+                          or(
+                            ri!EditMode = true,
+                            ri!ViewOnly = true,
+                            ri!Amendment = true
+                          ),
+                          ri!contract['recordType!{2ebb93da-5bd4-4067-8886-38d12d0d074e}Contract.fields.{d8d0da78-d967-478b-adb0-fc2039a2a26c}revisionnumber'],
+                          if(
+                            ri!New = true,
+                            0,
+                            rule!SCMS_generateRevisionNumberForARevisioningContract(
+                              contractNumber: ri!contract['recordType!{2ebb93da-5bd4-4067-8886-38d12d0d074e}Contract.fields.{d4e915d5-90cc-43b8-84a9-2f442d577c75}contractnumber'],
+                              ammendmentNumber: ri!contract['recordType!{2ebb93da-5bd4-4067-8886-38d12d0d074e}Contract.fields.{30caec6f-6c73-4d54-8b24-66268fc4ab50}ammendmentnumber']
+                            )
+                          )
+                        ),
+                        /*saveInto: if(*/
+                        /*or(*/
+                        /*ri!EditMode = true,*/
+                        /*ri!ViewOnly = true,*/
+                        /*ri!Amendment = true,*/
+                        /*ri!Revision = true*/
+                        /*),*/
+                        /*ri!contract['recordType!{2ebb93da-5bd4-4067-8886-38d12d0d074e}Contract.fields.{d8d0da78-d967-478b-adb0-fc2039a2a26c}revisionnumber'],*/
+                        /*ri!newContract.revisionNumber*/
+                        /*),*/
+                        refreshAfter: "UNFOCUS",
+                        readOnly: true/*validations: {*/
+                        /*if(*/
+                        /*or(ri!Revision = true, ri!Amendment = true),*/
+                        /*if(*/
+                        /*contains(*/
+                        /*rule!SCMS_QE_getListOfCombinationOfRevisonsAndAmmendments(ri!contract['recordType!{2ebb93da-5bd4-4067-8886-38d12d0d074e}Contract.fields.{d4e915d5-90cc-43b8-84a9-2f442d577c75}contractnumber']),*/
+                        /*concat(*/
+                        /*ri!contract['recordType!{2ebb93da-5bd4-4067-8886-38d12d0d074e}Contract.fields.{d8d0da78-d967-478b-adb0-fc2039a2a26c}revisionnumber'],*/
+                        /*ri!contract['recordType!{2ebb93da-5bd4-4067-8886-38d12d0d074e}Contract.fields.{30caec6f-6c73-4d54-8b24-66268fc4ab50}ammendmentnumber']*/
+                        /*)*/
+                        /*),*/
+                        /*"Duplicating the combination of revision # and ammendment #",*/
+                        /*""*/
+                        /*),*/
+                        /*""*/
+                        /*)*/
+                        /*}*/
+                        
+                      )
+                    ),
+                    a!sideBySideItem(),
+                    a!sideBySideItem(
+                      item: a!textField(
+                        label: "Amendment #",
+                        labelPosition: "ABOVE",
+                        value: if(
+                          or(
+                            ri!EditMode = true,
+                            ri!ViewOnly = true,
+                            ri!Revision = true
+                          ),
+                          ri!contract['recordType!{2ebb93da-5bd4-4067-8886-38d12d0d074e}Contract.fields.{30caec6f-6c73-4d54-8b24-66268fc4ab50}ammendmentnumber'],
+                          if(
+                            ri!New = true,
+                            0,
+                            rule!SCMS_generateAmmendmentNumberForAnAmmendingContract(
+                              contractNumber: ri!contract['recordType!{2ebb93da-5bd4-4067-8886-38d12d0d074e}Contract.fields.{d4e915d5-90cc-43b8-84a9-2f442d577c75}contractnumber']
+                            )
+                          )
+                        ),
+                        /*saveInto: if(*/
+                        /*or(*/
+                        /*ri!EditMode = true,*/
+                        /*ri!ViewOnly = true,*/
+                        /*ri!Amendment = true,*/
+                        /*ri!Revision = true*/
+                        /*),*/
+                        /*ri!contract['recordType!{2ebb93da-5bd4-4067-8886-38d12d0d074e}Contract.fields.{30caec6f-6c73-4d54-8b24-66268fc4ab50}ammendmentnumber'],*/
+                        /*ri!newContract.ammendmentNumber*/
+                        /*),*/
+                        refreshAfter: "UNFOCUS",
+                        readOnly: true/*validations: {*/
+                        /*if(*/
+                        /*ri!Amendment = true,*/
+                        /*if(*/
+                        /*contains(*/
+                        /*rule!SCMS_QE_getListOfCombinationOfRevisonsAndAmmendments(ri!contract['recordType!{2ebb93da-5bd4-4067-8886-38d12d0d074e}Contract.fields.{d4e915d5-90cc-43b8-84a9-2f442d577c75}contractnumber']),*/
+                        /*concat(*/
+                        /*ri!contract['recordType!{2ebb93da-5bd4-4067-8886-38d12d0d074e}Contract.fields.{d8d0da78-d967-478b-adb0-fc2039a2a26c}revisionnumber'],*/
+                        /*ri!contract['recordType!{2ebb93da-5bd4-4067-8886-38d12d0d074e}Contract.fields.{30caec6f-6c73-4d54-8b24-66268fc4ab50}ammendmentnumber']*/
+                        /*)*/
+                        /*),*/
+                        /*"Duplicating the combination of revision # and ammendment #",*/
+                        /*""*/
+                        /*),*/
+                        /*""*/
+                        /*)*/
+                        /*}*/
+                        
+                      )
+                    )
+                  }
+                ),
+                a!sideBySideLayout(
+                  items: {
+                    a!sideBySideItem(
+                      item: a!dateField(
+                        label: "Effective Date",
+                        labelPosition: "ABOVE",
+                        value: if(
+                          or(
+                            ri!EditMode = true,
+                            ri!ViewOnly = true,
+                            ri!Amendment = true,
+                            ri!Revision = true,
+                            a!isNullOrEmpty(ri!New)
+                          ),
+                          ri!contract['recordType!{2ebb93da-5bd4-4067-8886-38d12d0d074e}Contract.fields.{4afc1192-1329-4768-adb3-29b6ede6a354}effectivedate'],
+                          ri!newContract.effectiveDate
+                        ),
+                        saveInto: {
+                          if(
+                            or(
+                              ri!EditMode = true,
+                              ri!ViewOnly = true,
+                              ri!Amendment = true,
+                              ri!Revision = true,
+                              a!isNullOrEmpty(ri!New)
+                            ),
+                            ri!contract['recordType!{2ebb93da-5bd4-4067-8886-38d12d0d074e}Contract.fields.{4afc1192-1329-4768-adb3-29b6ede6a354}effectivedate'],
+                            ri!newContract.effectiveDate
+                          )
+                        },
+                        required: true,
+                        readOnly: ri!ViewOnly = true(),
+                        validations: {}
+                      )
+                    ),
+                    a!sideBySideItem(
+                      item: a!dateField(
+                        label: "Commencement Date",
+                        labelPosition: "ABOVE",
+                        value: if(
+                          or(
+                            ri!EditMode = true,
+                            ri!ViewOnly = true,
+                            ri!Amendment = true,
+                            ri!Revision = true,
+                            a!isNullOrEmpty(ri!New)
+                          ),
+                          ri!contract['recordType!{2ebb93da-5bd4-4067-8886-38d12d0d074e}Contract.fields.{3738e807-a926-4364-bd4f-7510ecb85450}commencementdate'],
+                          ri!newContract.commencementDate
+                        ),
+                        saveInto: {
+                          if(
+                            or(
+                              ri!EditMode = true,
+                              ri!ViewOnly = true,
+                              ri!Amendment = true,
+                              ri!Revision = true,
+                              a!isNullOrEmpty(ri!New)
+                            ),
+                            ri!contract['recordType!{2ebb93da-5bd4-4067-8886-38d12d0d074e}Contract.fields.{3738e807-a926-4364-bd4f-7510ecb85450}commencementdate'],
+                            ri!newContract.commencementDate
+                          )
+                        },
+                        required: true,
+                        readOnly: ri!ViewOnly = true(),
+                        validations: {
+                          if(
+                            or(
+                              ri!EditMode = true,
+                              ri!ViewOnly = true,
+                              ri!Amendment = true,
+                              ri!Revision = true,
+                              a!isNullOrEmpty(ri!New)
+                            ),
+                            if(
+                              and(
+                                a!isNotNullOrEmpty(
+                                  ri!contract['recordType!{2ebb93da-5bd4-4067-8886-38d12d0d074e}Contract.fields.{3738e807-a926-4364-bd4f-7510ecb85450}commencementdate']
+                                ),
+                                a!isNotNullOrEmpty(
+                                  ri!contract['recordType!{2ebb93da-5bd4-4067-8886-38d12d0d074e}Contract.fields.{4afc1192-1329-4768-adb3-29b6ede6a354}effectivedate']
+                                )
+                              ),
+                              if(
+                                (
+                                  /* remove the equal sign because of UAT defect*/
+                                  ri!contract['recordType!{2ebb93da-5bd4-4067-8886-38d12d0d074e}Contract.fields.{3738e807-a926-4364-bd4f-7510ecb85450}commencementdate'] < ri!contract['recordType!{2ebb93da-5bd4-4067-8886-38d12d0d074e}Contract.fields.{4afc1192-1329-4768-adb3-29b6ede6a354}effectivedate']
+                                ),
+                                "Select a date after the effective date",
+                                ""
+                              ),
+                              ""
+                            ),
+                            if(
+                              and(
+                                a!isNotNullOrEmpty(ri!newContract.commencementDate),
+                                a!isNotNullOrEmpty(ri!newContract.effectiveDate)
+                              ),
+                              if(
+                                /* remove the equal sign because of UAT defect*/
+                                ri!newContract.commencementDate < ri!newContract.effectiveDate,
+                                "Select a date after the effective date",
+                                ""
+                              ),
+                              ""
+                            )
+                          )
+                        }
+                      )
+                    ),
+                    a!sideBySideItem(
+                      item: a!dateField(
+                        label: "Completion Date",
+                        labelPosition: "ABOVE",
+                        value: if(
+                          or(
+                            ri!EditMode = true,
+                            ri!ViewOnly = true,
+                            ri!Amendment = true,
+                            ri!Revision = true,
+                            a!isNullOrEmpty(ri!New)
+                          ),
+                          ri!contract['recordType!{2ebb93da-5bd4-4067-8886-38d12d0d074e}Contract.fields.{d549f9bd-f9fb-440a-8f43-d38252d113d8}contractcompletiondate'],
+                          ri!newContract.contractCompletionDate
+                        ),
+                        saveInto: {
+                          if(
+                            or(
+                              ri!EditMode = true,
+                              ri!ViewOnly = true,
+                              ri!Amendment = true,
+                              ri!Revision = true,
+                              a!isNullOrEmpty(ri!New)
+                            ),
+                            ri!contract['recordType!{2ebb93da-5bd4-4067-8886-38d12d0d074e}Contract.fields.{d549f9bd-f9fb-440a-8f43-d38252d113d8}contractcompletiondate'],
+                            ri!newContract.contractCompletionDate
+                          )
+                        },
+                        required: true,
+                        readOnly: ri!ViewOnly = true(),
+                        validations: {
+                          if(
+                            or(
+                              ri!EditMode = true,
+                              ri!ViewOnly = true,
+                              ri!Amendment = true,
+                              ri!Revision = true,
+                              a!isNullOrEmpty(ri!New)
+                            ),
+                            if(
+                              and(
+                                a!isNotNullOrEmpty(
+                                  ri!contract['recordType!{2ebb93da-5bd4-4067-8886-38d12d0d074e}Contract.fields.{3738e807-a926-4364-bd4f-7510ecb85450}commencementdate']
+                                ),
+                                a!isNotNullOrEmpty(
+                                  ri!contract['recordType!{2ebb93da-5bd4-4067-8886-38d12d0d074e}Contract.fields.{d549f9bd-f9fb-440a-8f43-d38252d113d8}contractcompletiondate']
+                                )
+                              ),
+                              if(
+                                /* remove the equal sign because of UAT defect*/
+                                ri!contract['recordType!{2ebb93da-5bd4-4067-8886-38d12d0d074e}Contract.fields.{d549f9bd-f9fb-440a-8f43-d38252d113d8}contractcompletiondate'] < ri!contract['recordType!{2ebb93da-5bd4-4067-8886-38d12d0d074e}Contract.fields.{3738e807-a926-4364-bd4f-7510ecb85450}commencementdate'],
+                                "Select a date after the commencement date",
+                                ""
+                              ),
+                              ""
+                            ),
+                            if(
+                              and(
+                                a!isNotNullOrEmpty(ri!newContract.commencementDate),
+                                a!isNotNullOrEmpty(ri!newContract.contractCompletionDate)
+                              ),
+                              if(
+                                /* remove the equal sign because of UAT defect*/
+                                ri!newContract.contractCompletionDate < ri!newContract.commencementDate,
+                                "Select a date after the commencement date",
+                                ""
+                              ),
+                              ""
+                            )
+                          )
+                        }
+                      )
+                    )
+                  }
+                )
+              }
+            ),
+            a!columnLayout(
+              contents: {
+                a!richTextDisplayField(
+                  labelPosition: "COLLAPSED",
+                  value: {
+                    a!richTextItem(
+                      text: "Mode - Read Only",
+                      showWhen: ri!ViewOnly = true,
+                      color: cons!SCMS_COLOR_HIGHLIGHTS,
+                      size: "MEDIUM",
+                      style: "STRONG"
+                    )
+                  },
+                  align: "RIGHT"
+                )/*a!buttonArrayLayout(*/
+                /*buttons: {*/
+                /*a!buttonWidget(*/
+                /*label: "SAVE DRAFT",*/
+                /*saveInto: a!startProcess(*/
+                /*processModel: cons!SCMS_PM_NEW_CONTRACT,*/
+                /*processParameters: {*/
+                /*type: "contract",*/
+                /*contract: ri!newContract*/
+                /*}*/
+                /*),*/
+                /*style: "NORMAL"*/
+                /*)*/
+                /*},*/
+                /*align: "END"*/
+                /*)*/
+                
+              },
+              width: "NARROW"
+            )
+          }
+        ),
+        richTextField(
+          label: "Project Overview and Summary",
+          labelPosition: "JUSTIFIED",
+          validations: {},
+          height: "AUTO",
+          richTextValue: if(
+            or(
+              ri!EditMode = true,
+              ri!ViewOnly = true,
+              ri!Amendment = true,
+              ri!Revision = true,
+              a!isNullOrEmpty(ri!New)
+            ),
+            ri!contract['recordType!{2ebb93da-5bd4-4067-8886-38d12d0d074e}Contract.fields.{11791562-89e8-40d6-9ee3-ec0f7b0ebc90}projectoverview'],
+            ri!newContract.projectOverview
+          ),
+          richTextSaveInto: if(
+            or(
+              ri!EditMode = true,
+              ri!ViewOnly = true,
+              ri!Amendment = true,
+              ri!Revision = true,
+              a!isNullOrEmpty(ri!New)
+            ),
+            ri!contract['recordType!{2ebb93da-5bd4-4067-8886-38d12d0d074e}Contract.fields.{11791562-89e8-40d6-9ee3-ec0f7b0ebc90}projectoverview'],
+            {
+              a!save(
+                ri!newContract.projectOverview,
+                save!value
+              )
+            }
+          ),
+          readOnly: ri!ViewOnly = true(),
+          maxSize: null,
+          placeholder: null,
+          enableProgressBar: null,
+          allowedFormats: null,
+          allowImages: null,
+          imageStorageConnectedSystem: null
+        )
+      },
+      style: cons!SCMS_COLOR_BOX_LAYOUT_HEADER,
+      marginBelow: "STANDARD"
+    ),
+    a!boxLayout(
+      label: "Contract History",
+      contents: {
+        a!gridLayout(
+          label: "Contract History",
+          labelPosition: "COLLAPSED",
+          headerCells: {
+            a!gridLayoutHeaderCell(label: "Original Contract #"),
+            a!gridLayoutHeaderCell(label: "Contract Name"),
+            a!gridLayoutHeaderCell(label: "Reference ID 1 - Ammendment #"),
+            a!gridLayoutHeaderCell(label: "Reference ID 2 - Revision #")/*a!gridLayoutHeaderCell(label: "Remove")*/
+            
+          },
+          columnConfigs: {},
+          rows: {
+            a!forEach(
+              items: ri!originalContract,
+              expression: a!gridRowLayout(
+                contents: {
+                  a!textField(
+                    value: fv!item.idDisplayValue,
+                    readOnly: true(),
+                    validations: {}
+                  ),
+                  /*a!integerField(value: fv!item.id, saveInto: fv!item.id),*/
+                  a!richTextDisplayField(
+                    value: {
+                      a!richTextItem(text: fv!item.workOrderNumber),
+                      a!richTextItem(text: " - "),
+                      a!richTextItem(text: fv!item.workOrderName)
+                    },
+                    /*readOnly: true()*/
+                    
+                  ),
+                  a!textField(
+                    value: fv!item.ammendmentNumber,
+                    readOnly: true()
+                  ),
+                  a!textField(
+                    value: fv!item.revisionNumber,
+                    readOnly: true()
+                  )/*a!richTextDisplayField(*/
+                  /*value: a!richTextIcon(*/
+                  /*icon: "times",*/
+                  /*link: a!dynamicLink(*/
+                  /*saveInto: a!save(*/
+                  /*local!originalContract,*/
+                  /*remove(local!originalContract, fv!index)*/
+                  /*)*/
+                  /*),*/
+                  /*color: "NEGATIVE",*/
+                  /*size: "MEDIUM"*/
+                  /*),*/
+                  /*align: "CENTER"*/
+                  /*)*/
+                  
+                }
+              )
+            )
+          },
+          selectionSaveInto: {},
+          /*addRowLink: a!dynamicLink(*/
+          /*label: "Add New Row",*/
+          /*value: "",*/
+          /*saveInto: a!save(*/
+          /*local!originalContract,*/
+          /*append(local!originalContract, save!value)*/
+          /*)*/
+          /*),*/
+          validations: {},
+          shadeAlternateRows: true
+        )
+      },
+      style: cons!SCMS_COLOR_BOX_LAYOUT_HEADER,
+      marginBelow: "STANDARD"
+    )
+  }
+)
