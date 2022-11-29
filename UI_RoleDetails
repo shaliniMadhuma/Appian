@@ -1,0 +1,522 @@
+a!localVariables(
+  local!Bill,
+  local!roleDetails: 'type!{urn:com:appian:types:SCMS}SCMS_Role_Details'(),
+  local!roleData: rule!SCMS_QE_getRoleDetailsByRatecardId(rateCardId: ri!rateCardId),
+  local!contractData: rule!SCMS_QE_getContractDetailsById(contractId: ri!contractId),
+  local!ratecardData: rule!SCMS_QE_getRatecardDetailsById(ratecardId: ri!rateCardId),
+  local!roleNumberValue: if(
+    a!isNullOrEmpty(local!roleData),
+    "",
+    property(local!roleData, "id", "")
+  ),
+  local!roleNumberLabel: a!forEach(
+    items: local!roleNumberValue,
+    expression: "Role - " & fv!item
+  ),
+  local!contractCommencementDate: if(
+    a!isNullOrEmpty(local!contractData),
+    "",
+    property(local!contractData, "commencementDate","")
+  ),
+  local!ratecardStartDate: if(
+    a!isNullOrEmpty(local!ratecardData),
+    "",
+    property(local!ratecardData, "effectiveDate","")
+  ),
+  local!contractCompletionDate: if(
+    a!isNullOrEmpty(local!contractData),
+    "",
+    property(
+      local!contractData,
+      "contractCompletionDate",
+      ""
+    )
+  ),
+  local!ratecardEndDate: if(
+    a!isNullOrEmpty(local!ratecardData),
+    "",
+    property(local!ratecardData, "expiryDate","")
+  ),
+  local!startDate: rule!SCMS_getTheMaxDate(
+    date1: local!contractCommencementDate,
+    date2: local!ratecardStartDate
+  )
+ 
+  ,
+  local!enddate: rule!SCMS_getTheMinDate(
+    date1: local!contractCompletionDate,
+    date2: local!ratecardEndDate
+  )
+  
+  ,
+  local!deleteButton: false(),
+  local!removeItem,
+  {
+    
+      a!boxLayout(
+        label: "Role Details",
+        contents: {
+          a!columnsLayout(
+            columns: {
+              a!columnLayout(
+                contents: {
+                  a!gridLayout(
+                    label: "Role Details",
+                    labelPosition: "COLLAPSED",
+                    headerCells: {
+                      a!gridLayoutHeaderCell(label: "Role #"),
+                      a!gridLayoutHeaderCell(label: "POC"),
+                      a!gridLayoutHeaderCell(label: "Role"),
+                      a!gridLayoutHeaderCell(label: "Availability"),
+                      a!gridLayoutHeaderCell(label: "On/Off Flag"),
+                      a!gridLayoutHeaderCell(label: "Country"),
+                      a!gridLayoutHeaderCell(label: "City"),
+                      a!gridLayoutHeaderCell(label: "Start Date"),
+                      a!gridLayoutHeaderCell(label: "End Date"),
+                      a!gridLayoutHeaderCell(label: "Hourly Rate ($)"),
+                      a!gridLayoutHeaderCell(label: "Note"),
+                      a!gridLayoutHeaderCell(label: "Actions"),
+                    },
+                    columnConfigs: {},
+                    rows: {
+                      a!forEach(
+                        items: ri!roleDetails,
+                        expression: {
+                          a!gridRowLayout(
+                            contents: {
+                              {
+                                if(
+                                  ri!ViewOnly,
+                                  a!textField(
+                                    value: { "RC - " & index(fv!item,"roleId", "") },
+                                    saveInto: index(fv!item,"roleId",""),
+                                    required: true(),
+                                    readOnly: true()
+                                  ),
+                                  if(
+                                    a!isNullOrEmpty(local!roleNumberLabel),
+                                    a!textField(
+                                      value: { "No value" & index(fv!item,"roleId","") },
+                                      saveInto: index(fv!item,"roleId",""),
+                                      required: true(),
+                                      readOnly: true()
+                                    ),
+                                    a!dropdownField(
+                                      choiceLabels: local!roleNumberLabel,
+                                      choiceValues: local!roleNumberValue,
+                                      value: index(fv!item,"roleId",""),
+                                      placeholder: if(
+                                        a!isNullOrEmpty(local!roleData),
+                                        "--No value--",
+                                        "--Select--"
+                                      ),
+                                      saveInto: {
+                                        index(fv!item,"roleId",""),
+                                        a!save(
+                                          index(fv!item,"role",""),
+                                          property(
+                                            rule!SCMS_QE_getRoleDetailsFromRoleId(id: index(fv!item,"roleId","")),
+                                            "roleName"
+                                          )
+                                        ),
+                                        a!save(index(fv!item,"contractId",""), ri!contractId),
+                                        a!save(
+                                          index(fv!item,"country",""),
+                                          property(
+                                            rule!SCMS_QE_getRoleDetailsFromRoleId(id: index(fv!item,"roleId","")),
+                                            "location"
+                                          )
+                                        ),
+                                        a!save(index(fv!item,"startDate",""), local!startDate),
+                                        a!save(index(fv!item,"endDate",""), local!enddate),
+                                        a!save(
+                                          index(fv!item,"hourlyRate",""),
+                                          property(
+                                            rule!SCMS_QE_getRoleDetailsFromRoleId(id: index(fv!item,"roleId","")),
+                                            "rate"
+                                          )
+                                        ),
+                                        a!save(index(fv!item,"createdBy",""), loggedInUser()),
+                                        a!save(index(fv!item,"createdOn",""), now()),
+                                        a!save(index(fv!item,"isActive",""), true())
+
+                                      },
+                                      required: true(),
+                                      disabled: if(
+                                        a!isNotNullOrEmpty(index(fv!item,"roleId","")),
+                                        ri!edit=true(),
+                                        ""
+                                      )
+
+                                    ),
+
+                                  )
+                                )
+                              },
+                              {
+                                a!textField(
+                                  value: index(fv!item,"POC",""),
+                                  saveInto: { index(fv!item,"POC",""),  },
+                                  readOnly: ri!ViewOnly = true(),
+                                 
+                                  
+                                )
+                              },
+                              a!textField(
+                                value: if(
+                                  a!isNullOrEmpty(index(fv!item,"roleId","")),
+                                  "",
+                                  property(
+                                    rule!SCMS_QE_getRoleDetailsFromRoleId(id: index(fv!item,"roleId","")),
+                                    "roleName"
+                                  )
+                                ),
+                                saveInto: { index(fv!item,"role","")  },
+                                readOnly: true()
+                              ),
+                              {
+                                if(
+                                  ri!ViewOnly,
+                                  a!textField(
+                                    value: index(fv!item,"availablity",""),
+                                    saveInto: index(fv!item,"availablity",""),
+                                    readOnly: true()
+                                  ),
+                                  a!dropdownField(
+                                    choiceLabels: { "Yes", "No" },
+                                    choiceValues: { true(), false() },
+                                    placeholder: "--Select--",
+                                    value: index(fv!item,"availablity",""),
+                                    saveInto: { index(fv!item,"availablity","")  },
+                                    
+                                  ),
+
+                                )
+                              },
+                              {
+                                if(
+                                  ri!ViewOnly,
+                                  a!textField(
+                                    value: index(fv!item,"onOffFlag",""),
+                                    saveInto: index(fv!item,"onOffFlag",""),
+                                    readOnly: true()
+                                  ),
+                                  a!dropdownField(
+                                    choiceLabels: { "Onshore", "Offshore" },
+                                    choiceValues: { "ON", "OFF" },
+                                    placeholder: "--Select--",
+                                    value: index(fv!item,"onOffFlag",""),
+                                    saveInto: { index(fv!item,"onOffFlag","")  },
+                                   
+                                  ),
+
+                                )
+                              },
+                              a!textField(
+                                value: if(
+                                  a!isNullOrEmpty(index(fv!item,"roleId","")),
+                                  "",
+                                  property(
+                                    rule!SCMS_QE_getRoleDetailsFromRoleId(id: index(fv!item,"roleId","")),
+                                    "location"
+                                  )
+                                ),
+                                saveInto: index(fv!item,"country",""),
+                                readOnly: true()
+                              ),
+                              {
+                                a!textField(
+                                  value: index(fv!item,"city",""),
+                                  saveInto: { index(fv!item,"city","") },
+                                  readOnly: ri!ViewOnly = true(),
+                                  /*disabled: */
+                                  /*if(*/
+                                    /*local!clickUpdate,*/
+                                    /*false(),*/
+                                  /*if(*/
+                                    /*a!isNotNullOrEmpty(index(fv!item,"city","")),*/
+                                    /*ri!edit=true(),*/
+                                    /*""*/
+                                  /*)*/
+                                  /*)*/
+                                )
+                              },
+                              {
+                                a!dateField(
+                                  value: fv!item.startDate,
+                                  /*if(*/
+                                    /*a!isNullOrEmpty(index(fv!item,"roleId","")),*/
+                                    /*fv!item.startDate,*/
+                                    /*local!startDate*/
+                                  /*),*/
+                                  saveInto: { fv!item.startDate ,
+                                  },
+                                  /*disabled: */
+                                  /*if(*/
+                                    /*local!clickUpdate,*/
+                                    /*false(),*/
+                                  /*if(*/
+                                    /*a!isNotNullOrEmpty(fv!item.startDate),*/
+                                    /*ri!edit=true(),*/
+                                    /*""*/
+                                  /*),*/
+                                  /*),*/
+                                  readOnly: ri!ViewOnly = true(),
+                                  validations: if(
+                                    or(a!isNullOrEmpty(local!startDate),a!isNullOrEmpty(fv!item.startDate)),
+                                    "",
+                                    if(
+                                      fv!item.startDate < todate(local!startDate),
+                                      "Start date can not be less than Max (Contract Commensement Date, Rate card Start Date)",
+                                      ""
+                                    )
+                                  )
+
+                                )
+                              },
+                              {
+                                a!dateField(
+                                  value:  fv!item.endDate,                                                                       
+                                  /*if(*/
+                                    /*a!isNullOrEmpty(index(fv!item,"roleId","")),*/
+                                    /*fv!item.endDate,*/
+                                    /*local!enddate*/
+                                  /*),*/
+                                  saveInto: { fv!item.endDate ,
+                                  },
+                                  readOnly: ri!ViewOnly = true(),
+                                  /*disabled: */
+                                  /*if(*/
+                                    /*local!clickUpdate,*/
+                                    /*false(), */
+                                  /*if(*/
+                                    /*a!isNotNullOrEmpty(fv!item.endDate),*/
+                                    /*ri!edit=true(),*/
+                                    /*""*/
+                                  /*),*/
+                                  /*),*/
+                                  validations: if(
+                                    or(a!isNullOrEmpty(local!enddate),a!isNullOrEmpty(fv!item.endDate)),
+                                    "",
+                                    if(
+                                      fv!item.endDate > todate(local!enddate),
+                                      "End date can not exceed Min(Contract Completion Date, Rate card End Date)",
+                                      ""
+                                    )
+                                  )
+                                  
+                                )
+                              },
+                              a!floatingPointField(
+                                value: if(
+                                  a!isNullOrEmpty(index(fv!item,"roleId","")),
+                                  "",
+                                  property(
+                                    rule!SCMS_QE_getRoleDetailsFromRoleId(id: index(fv!item,"roleId","")),
+                                    "rate"
+                                  )
+                                ),
+                                saveInto: fv!item.hourlyRate,
+                                readOnly: true(),
+                                
+                              ),
+                              {
+                                a!paragraphField(
+                                  value: fv!item.note,
+                                  saveInto: { fv!item.note },
+                                  readOnly: ri!ViewOnly = true(),
+                                  /*disabled: */
+                                  /*if(*/
+                                    /*local!clickUpdate,*/
+                                    /*false(),*/
+                                  /*if(*/
+                                    /*a!isNotNullOrEmpty(fv!item.note),*/
+                                    /*ri!edit=true(),*/
+                                    /*""*/
+                                  /*)*/
+                                  /*)*/
+                                )
+                              },
+                              a!richTextDisplayField(
+                                value: {
+                                  a!richTextIcon(
+                                    icon: "eye",
+                                    caption: "View Billing Details",
+                                    link: a!dynamicLink(
+                                      saveInto: {
+                                        a!save(local!Bill, fv!item),
+                                        
+                                        a!save(local!deleteButton, true())
+                                      }
+                                    ),
+                                    color: "STANDARD",
+                                    size: "MEDIUM",
+                                    showWhen: a!isNotNullOrEmpty(index(fv!item,"roleId",""))
+                                  ),
+                                  a!richTextItem(
+                                    text: char(10),
+                                    color: "STANDARD",
+                                    size: "MEDIUM"
+                                  ),
+                                  a!richTextIcon(
+                                    icon: "times",
+                                    caption: "Remove",
+                                    link: a!dynamicLink(
+                                      saveInto: {
+                                        a!save(
+                                          fv!item.isActive, false()
+                                        ), 
+                                        a!save(
+                                          local!removeItem, fv!item
+                                        ),
+                                        a!save(
+                                          local!Bill,
+                                          ""
+                                        ),
+                                        a!save(local!deleteButton, false()),
+                                        /*a!startProcess(*/
+                                          /*processModel: cons!SCMS_PM_CREATE_ROLE_ALLOCATION,*/
+                                          /*processParameters: {*/
+                                            /*roleDetails: local!removeItem*/
+                                          /*}*/
+                                        /*),*/
+                                        a!startProcess(
+                                          processModel: cons!SCMS_PM_INACTIVE_ROLE_ALLOCATION,
+                                          processParameters: {
+                                            financialRoleId: local!removeItem.id
+                                          },
+                                          onSuccess: {
+                                            a!save(local!removeItem, fv!processInfo.pv.roleDetails)
+                                          }
+                                        ),
+                                        a!save(
+                                          ri!roleDetails,
+                                          remove(ri!roleDetails, fv!index)
+                                        )
+                                      },
+                                      
+                                      
+                                    ),
+                                    color: "NEGATIVE",
+                                    size: "MEDIUM",
+                                    showWhen: if(
+                                      ri!ViewOnly,
+                                      false(),
+                                      a!isNullOrEmpty(local!Bill)
+                                    ),
+                                    
+                                  ),
+                                  a!richTextItem(
+                                    text: char(10),
+                                    color: "STANDARD",
+                                    size: "MEDIUM"
+                                  ),
+                                  /*a!richTextIcon(*/
+                                    /*icon: "edit",*/
+                                    /*caption: "Update the role details",*/
+                                    /*link: a!dynamicLink(*/
+                                      /*saveInto: {*/
+                                        /*a!startProcess(*/
+                                          /*processModel: cons!SCMS_PM_DELETE_FINANCIAL_BILLING,*/
+                                          /*processParameters: {*/
+                                            /*roleDetails: fv!item*/
+                                          /*}*/
+                                        /*),*/
+                                        /*a!save(local!Bill, null()),*/
+                                        /*a!save(local!clickUpdate, true()),*/
+/**/
+                                        /*a!save(local!deleteButton, false())*/
+                                      /*}*/
+                                    /*),*/
+                                    /*color: "STANDARD",*/
+                                    /*size: "MEDIUM",*/
+                                    /*showWhen: and(*/
+                                      /*a!isNotNullOrEmpty(index(fv!item,"roleId","")),*/
+                                      /*ri!edit*/
+                                    /*)*/
+                                  /*),*/
+                                  /*a!richTextItem(*/
+                                    /*text: char(10),*/
+                                    /*color: "STANDARD",*/
+                                    /*size: "MEDIUM"*/
+                                  /*),*/
+                                },
+                                align: "CENTER"
+                              ),
+
+                            }
+                          )
+                        }
+                      )
+                    },
+                    selectionSaveInto: {},
+                    addRowLink: a!dynamicLink(
+                      label: "Add New Row",
+                      value: "",
+                      saveInto: {
+                        a!save(
+                          ri!roleDetails,
+                          append(ri!roleDetails, save!value)
+                        ),
+                        a!save(local!Bill, null),
+                        a!save(local!deleteButton, false())
+                      },
+                      showWhen: if(
+                        ri!ViewOnly,
+                        false(),
+                        true()
+                        )
+
+                    ),
+                    validations: {},
+                    shadeAlternateRows: true
+                  ),
+                  a!columnsLayout(
+                    columns: {
+                      a!columnLayout(
+                        contents: a!cardLayout(
+                          contents: {
+                            rule!SCMS_UI_BillingSummary(
+                              startDate: todate(local!Bill.startDate),
+                              endDate: todate(local!Bill.endDate),
+                              hourlyRate: local!Bill.hourlyRate,
+
+                            )
+                          },
+                          showWhen: a!isNotNullOrEmpty(local!Bill),
+                          showBorder: false
+                        )
+                      ),
+                      a!columnLayout(
+                        contents: a!richTextDisplayField(
+                          value: a!richTextIcon(
+                            icon: "times",
+                            link: a!dynamicLink(
+                              saveInto: {
+                                a!save(local!Bill, null),
+                                a!save(local!deleteButton, false())
+                              }
+                            ),
+                            color: "NEGATIVE",
+                            size: "MEDIUM"
+                          )
+                        ),
+                        width: "EXTRA_NARROW",
+                        showWhen: local!deleteButton
+                      )
+                    }
+                  )
+                }
+              )
+            },
+            spacing: "NONE"
+          )
+        },
+        style: cons!SCMS_COLOR_BOX_LAYOUT_HEADER,
+        marginBelow: "STANDARD"
+      )
+    
+    ,
+    
+  }
+)
