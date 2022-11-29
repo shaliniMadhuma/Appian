@@ -1,0 +1,193 @@
+a!localVariables(
+  local!financialBillingData: rule!SCMS_getFinanceBillingDataUsingContractIDMonth(contractId: ri!contractId, financialId: ri!financialId),
+  local!monthArray: if(
+    or(
+      a!isNullOrEmpty(local!financialBillingData),
+      count(local!financialBillingData)=0
+      ),
+    "",
+    property(
+      local!financialBillingData,
+      "month"
+    )
+  ),
+  local!month: union(local!monthArray, local!monthArray),
+  a!boxLayout(
+    label: "Milestone",
+    contents: {
+      a!buttonArrayLayout(
+        buttons: {
+          a!buttonWidget(
+            icon: "refresh",
+            style: "NORMAL",
+            saveInto: a!save(
+              local!financialBillingData,
+              rule!SCMS_getFinanceBillingDataUsingContractIDMonth(
+                contractId: ri!contractId,
+                financialId: ri!financialId
+              )
+            ),
+            size: "SMALL"
+          )
+        },
+        align: "END"
+      ),
+      a!gridLayout(
+        label: "Milestone",
+        labelPosition: "COLLAPSED",
+        headerCells: {
+          a!gridLayoutHeaderCell(
+            label:"Month",
+          ),
+          a!gridLayoutHeaderCell(
+            label: "Period End Date"
+          ),
+          a!gridLayoutHeaderCell(
+            label: "Billing Date"
+          ),
+          a!gridLayoutHeaderCell(
+            label: "Capped Milestone ($)"
+          ),
+          a!gridLayoutHeaderCell(
+            label: "Monthly True Up ($)"
+          )
+        },
+        columnConfigs: {},
+        rows: {
+          a!forEach(
+            items: local!month,
+            expression: a!gridRowLayout(
+              contents: {
+                if(
+                  fv!isLast,
+                  {
+                    a!textField(
+                      value: fv!item,
+                      readOnly: true()
+                    ),
+                    a!textField(
+                      value: rule!SCMS_getLastEndDateOfRole(contractId: ri!contractId, financialId: ri!financialId),
+                      readOnly: true()
+                    ),
+                    a!textField(
+                      value: rule!SCMS_getLastDateOfaMonth(item: fv!item),
+                      readOnly: true()
+                    ),
+                    a!textField(
+                      value: fixed(rule!SCMS_calTotalOfFinancialBilling(
+                        financialId: ri!financialId,
+                        contractId: ri!contractId,
+                        month: fv!item,
+                        parameter: "monetaryValue"
+                      ), 2),
+                      readOnly: true()
+                    ),
+                    a!textField(
+                      value: fixed(
+                        rule!SCMS_calTotalOfFinancialBilling(
+                        financialId: ri!financialId,
+                        contractId: ri!contractId,
+                        month: fv!item,
+                        parameter: "discountedValue"
+                      ),
+                      2),
+                      readOnly: true()
+                    )
+                  },
+                  {
+                    a!textField(
+                      value: fv!item,
+                      readOnly: true()
+                    ),
+                    a!textField(
+                      value: rule!SCMS_getLastDateOfaMonth(item: fv!item),
+                      readOnly: true()
+                    ),
+                    a!textField(
+                      value: rule!SCMS_getLastDateOfaMonth(item: fv!item),
+                      readOnly: true()
+                    ),
+                    a!textField(
+                      value: fixed(rule!SCMS_calTotalOfFinancialBilling(
+                        financialId: ri!financialId,
+                        contractId: ri!contractId,
+                        month: fv!item,
+                        parameter: "monetaryValue"
+                      ), 2),
+                      readOnly: true()
+                    ),
+                    a!textField(
+                      value: fixed(rule!SCMS_calTotalOfFinancialBilling(
+                        financialId: ri!financialId,
+                        contractId: ri!contractId,
+                        month: fv!item,
+                        parameter: "discountedValue"
+                      ), 2),
+                      readOnly: true()
+                    )
+                  }
+                )
+                
+
+              }
+            )
+          )
+        },
+
+        selectionSaveInto: {},
+        height: "SHORT",
+        validations: {},
+        shadeAlternateRows: true
+      ),
+      a!sideBySideLayout(
+        items: {
+          a!sideBySideItem(
+            item: a!richTextDisplayField(
+              labelPosition: "COLLAPSED",
+              value: {
+                a!richTextItem(
+                  text: {
+                    "Total Capped Milestone:  "
+                  },
+                  style: {
+                    "STRONG"
+                  }
+                ),
+                fixed(rule!SCMS_calTotalOfFinancialBilling(
+                  financialId: ri!financialId,
+                  contractId: ri!contractId,
+                  parameter: "monetaryValue"
+                ), 2)
+              },
+              align: "CENTER"
+            )
+          ),
+          a!sideBySideItem(
+            item: a!richTextDisplayField(
+              labelPosition: "COLLAPSED",
+              value: {
+                a!richTextItem(
+                  text: {
+                    "Total Monthly True Up:  "
+                  },
+                  style: {
+                    "STRONG"
+                  }
+                ),
+                fixed(rule!SCMS_calTotalOfFinancialBilling(
+                  financialId: ri!financialId,
+                  contractId: ri!contractId,
+                  parameter: "discountedValue"
+                ), 2)
+              },
+              align: "CENTER"
+            )
+          )
+        }
+      )
+    },
+    style: cons!SCMS_COLOR_BOX_LAYOUT_HEADER,
+    marginBelow: "STANDARD"
+  )
+  
+)
