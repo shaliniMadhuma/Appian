@@ -1,0 +1,322 @@
+a!localVariables(
+  local!contractType: property(
+    rule!SCMS_getlookupDetailsByCategory(category: "CONTRACT_TYPE"),
+    "displayLabel"
+  ),
+  local!ratecardID: property(rule!SCMS_QE_getRatecardDetails(), "id"),
+  local!ratecardNum: a!forEach(
+    items: local!ratecardID,
+    expression: "RC - " & fv!item
+  ),
+  local!ratecardVal,
+  /*local!generalInformation_cdt: rule!SCMS_QE_getFinancialDetailsByContractId(contractId: ri!contractID),*/
+  /*if(*/
+    /*ri!editMode,*/
+    /*a!boxLayout(*/
+      /*label: "General Information",*/
+      /*contents: {*/
+        /*a!sideBySideLayout(*/
+          /*items: {*/
+            /*a!sideBySideItem(*/
+              /*item: a!dropdownField(*/
+                /*label: "Contract Type",*/
+                /*labelPosition: "ABOVE",*/
+                /*placeholder: "--- Select a Value ---",*/
+                /*choiceLabels: local!contractType,*/
+                /*choiceValues: local!contractType,*/
+                /*value: local!generalInformation_cdt.contractType,*/
+                /*saveInto: {*/
+                  /*ri!contractFinancial.contractType,*/
+                  /*a!save(*/
+                    /*ri!contractFinancial.contractId,*/
+                    /*ri!contractID*/
+                  /*),*/
+                  /*a!save(*/
+                    /*ri!contractFinancial.createdBy,*/
+                    /*loggedInUser()*/
+                  /*),*/
+                  /*a!save(ri!contractFinancial.createdOn, now()),*/
+                  /*a!save(ri!contractFinancial.isActive, true())*/
+                /*},*/
+                /*searchDisplay: "AUTO",*/
+                /*disabled: if(ri!ViewOnly, true(), false()),*/
+                /*required: true()*/
+              /*)*/
+            /*),*/
+            /*a!sideBySideItem(*/
+              /*item: a!floatingPointField(*/
+                /*label: "Discount %",*/
+                /*labelPosition: "ABOVE",*/
+                /*value: local!generalInformation_cdt.discount,*/
+                /*saveInto: {*/
+                  /*ri!contractFinancial.discount,*/
+                  /*a!save(*/
+                    /*ri!contractFinancial.contractId,*/
+                    /*ri!contractID*/
+                  /*),*/
+                  /*a!save(*/
+                    /*ri!contractFinancial.createdBy,*/
+                    /*loggedInUser()*/
+                  /*),*/
+                  /*a!save(ri!contractFinancial.createdOn, now()),*/
+                  /*a!save(ri!contractFinancial.isActive, true())*/
+                /*},*/
+                /*refreshAfter: "UNFOCUS",*/
+                /*disabled: if(ri!ViewOnly, true(), false()),*/
+                /*readOnly: ri!ViewOnly = true(),*/
+                /*validations: {*/
+                  /*if(*/
+                    /*a!isNullOrEmpty(ri!contractFinancial.discount),*/
+                    /*"",*/
+                    /*if(*/
+                      /*ri!contractFinancial.discount < 0,*/
+                      /*"The discount cannot be less than 0",*/
+                      /*if(*/
+                        /*ri!contractFinancial.discount > 100,*/
+                        /*"The discount cannot be greater than 100",*/
+                        /*""*/
+                      /*)*/
+                    /*)*/
+                  /*)*/
+                /*},*/
+                /*required: true()*/
+              /*)*/
+            /*),*/
+            /*a!sideBySideItem(*/
+              /*item: a!dropdownField(*/
+                /*label: "Rate Card #",*/
+                /*labelPosition: "ABOVE",*/
+                /*placeholder: "--- Select a Value ---",*/
+                /*choiceLabels: local!ratecardNum,*/
+                /*choiceValues: local!ratecardId,*/
+                /*value: local!generalInformation_cdt.rateCardId,*/
+                /*saveInto: {*/
+                  /*ri!contractFinancial.rateCardId,*/
+                  /*a!save(ri!roleDetails, null()),*/
+                  /*a!save(*/
+                    /*ri!contractFinancial.contractId,*/
+                    /*ri!contractID*/
+                  /*),*/
+                  /*a!save(*/
+                    /*ri!contractFinancial.createdBy,*/
+                    /*loggedInUser()*/
+                  /*),*/
+                  /*a!save(ri!contractFinancial.createdOn, now()),*/
+                  /*a!save(ri!contractFinancial.isActive, true())*/
+                /*},*/
+                /*searchDisplay: "AUTO",*/
+                /*disabled: if(ri!ViewOnly, true(), false()),*/
+                /*validations: {},*/
+                /*required: true()*/
+              /*)*/
+            /*),*/
+            /*a!sideBySideItem(*/
+              /*item: a!integerField(*/
+                /*label: "Number of Positions",*/
+                /*labelPosition: "ABOVE",*/
+                /*value: if(*/
+                  /*ri!contractFinancial.isActive,*/
+                  /*local!generalInformation_cdt.noOfPosition,*/
+                  /*count(ri!roleDetails),*/
+/*                  */
+                /*),*/
+                /*saveInto: ri!contractFinancial.noOfPosition,*/
+                /*refreshAfter: "UNFOCUS",*/
+                /*readOnly: true(),*/
+                /*validations: {}*/
+              /*)*/
+            /*)*/
+          /*},*/
+/*          */
+        /*),*/
+/*        */
+      /*},*/
+      /*style: cons!SCMS_COLOR_BOX_LAYOUT_HEADER,*/
+      /*marginBelow: "STANDARD"*/
+    /*),*/
+  {
+    a!boxLayout(
+      label: "General Information",
+      contents: {
+        a!sideBySideLayout(
+          items: {
+            a!sideBySideItem(
+              item: a!dropdownField(
+                label: "Rate Card #",
+                labelPosition: "ABOVE",
+                placeholder: "--- Select a Value ---",
+                choiceLabels: local!ratecardNum,
+                choiceValues: local!ratecardId,
+                value: ri!contractFinancial.rateCardId,
+                /*if(*/
+                  /*ri!edit,*/
+                  /*local!ratecardVal,*/
+                  /*ri!contractFinancial.rateCardId*/
+                /*)*/
+                
+                saveInto: {
+                  local!ratecardVal,
+                  a!save(ri!roleDetails, null()),
+                  a!save(
+                    ri!contractFinancial.contractId,
+                    ri!contractID
+                  ),
+                  a!save(
+                    ri!contractFinancial.createdBy,
+                    loggedInUser()
+                  ),
+                  a!save(ri!contractFinancial.createdOn, now()),
+                  a!save(ri!contractFinancial.isActive, true()),
+                  if(
+                    ri!edit,
+                    a!startProcess(
+                      processModel: cons!SCMS_PM_DELETE_ROLE_DETAILS,
+                      processParameters: {
+                        financialId: ri!contractFinancial.id
+                      }, 
+                      onSuccess: {
+                        a!save(
+                          ri!contractFinancial,
+                          fv!processInfo.pv.contractFinancial
+                        )
+                      }
+
+
+                    ),
+                    ""
+                  ),
+                  a!save(ri!contractFinancial.rateCardId,local!ratecardVal)
+
+                },
+                searchDisplay: "AUTO",
+                /*required: true(),*/
+                disabled: if(ri!ViewOnly, true(), false()),
+                validations: {
+                  if(
+                    or(a!isNotNullOrEmpty(ri!contractFinancial.rateCardId),a!isNotNullOrEmpty(local!ratecardVal)),
+                    "",
+                    "This field is required",
+
+                  )
+                },
+                validationGroup: "validate"
+              )
+            ),
+            a!sideBySideItem(
+              item: a!dropdownField(
+                label: "Contract Type",
+                labelPosition: "ABOVE",
+                placeholder: "--- Select a Value ---",
+                choiceLabels: local!contractType,
+                choiceValues: local!contractType,
+                value: ri!contractFinancial.contractType,
+                saveInto: {
+                  ri!contractFinancial.contractType,
+                  a!save(
+                    ri!contractFinancial.contractId,
+                    ri!contractID
+                  ),
+                  a!save(
+                    ri!contractFinancial.createdBy,
+                    loggedInUser()
+                  ),
+                  a!save(ri!contractFinancial.createdOn, now()),
+                  a!save(ri!contractFinancial.isActive, true())
+                },
+                searchDisplay: "AUTO",
+                /*required: true(),*/
+                disabled: if(ri!ViewOnly, true(), false()),
+                validations: {
+                  if(
+                    a!isNullOrEmpty(ri!contractFinancial.contractType),
+                    "This field is required",
+                    ""
+                  )
+                },
+                validationGroup: "validate"
+              )
+            ),
+            a!sideBySideItem(
+              item: a!floatingPointField(
+                label: "Discount %",
+                labelPosition: "ABOVE",
+                value: ri!contractFinancial.discount,
+                saveInto: {
+                  ri!contractFinancial.discount,
+                  a!save(
+                    ri!contractFinancial.contractId,
+                    ri!contractID
+                  ),
+                  a!save(
+                    ri!contractFinancial.createdBy,
+                    loggedInUser()
+                  ),
+                  a!save(ri!contractFinancial.createdOn, now()),
+                  a!save(ri!contractFinancial.isActive, true())
+                },
+                refreshAfter: "UNFOCUS",
+                /*required: true(),*/
+                readOnly: ri!ViewOnly = true(),
+                disabled: if(ri!ViewOnly, true(), false()),
+                validations: {
+                  if(
+                    a!isNullOrEmpty(ri!contractFinancial.discount),
+                    "This field is required",
+                    if(
+                      ri!contractFinancial.discount < 0,
+                      "The discount cannot be less than 0",
+                      if(
+                        ri!contractFinancial.discount > 100,
+                        "The discount cannot be greater than 100",
+                        ""
+                      )
+                    )
+                  )
+                }, 
+                validationGroup: "validate"
+              )
+            ),
+            
+            a!sideBySideItem(
+              item: a!textField(
+                label: "Number of Positions",
+                labelPosition: "ABOVE",
+                value: if(
+                  a!isNullOrEmpty(ri!roleDetails),
+                  0,
+                  count(ri!roleDetails)
+                ),
+                saveInto: ri!contractFinancial.noOfPosition,
+                refreshAfter: "UNFOCUS",
+                readOnly: true(),
+                validations: {}
+              )
+            )
+          }
+          
+        ),
+        a!richTextDisplayField(
+          labelPosition: "COLLAPSED",
+          value: {
+            a!richTextItem(
+              text: {
+                "----If you change the rate card, all role details will be deleted ! ----"
+              },
+              color: "#ff9900",
+              style: {
+                "EMPHASIS",
+                "STRONG"
+              }
+            )
+          },
+          showWhen: ri!edit=true(),
+          align: "CENTER"
+        )
+      },
+      style: cons!SCMS_COLOR_BOX_LAYOUT_HEADER,
+      marginBelow: "STANDARD"
+    ),
+    
+    }
+  
+)
