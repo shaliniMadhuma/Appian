@@ -1,0 +1,278 @@
+/*if(*/
+  /*or(*/
+    /*a!isNullOrEmpty(ri!startDate),*/
+    /*a!isNullOrEmpty(ri!endDate),*/
+    /*ri!endDate<ri!startDate*/
+  /*),*/
+  /*"",*/
+  a!localVariables(
+    /*local!noOfMonths: rule!SCMS_CalNuOfMonth(*/
+      /*startDate: ri!startDate,*/
+      /*endDate: ri!endDate*/
+    /*),*/
+    
+    local!workDayStartMonth: if(
+      and(
+        month(ri!startDate)= month(ri!endDate),
+        year(ri!startDate)=year(ri!endDate)
+      ),
+      calworkdays(
+        ri!startDate,
+        ri!endDate
+      ),
+      if(
+        rule!SCMS_calWorkDaysOfStartMonth(startDate: ri!startDate)>20,
+        20,
+        rule!SCMS_calWorkDaysOfStartMonth(startDate: ri!startDate)
+      )
+    )
+    ,
+    local!workDayLastMonth:if(
+      rule!SCMS_calWorksDaysOfLastMonth(endDate: ri!endDate)>20,
+      20,
+      rule!SCMS_calWorksDaysOfLastMonth(endDate: ri!endDate)
+    ) ,
+    local!monthArray: rule!SCMS_monthArray(
+      startDate: ri!startDate,
+      endDate: ri!endDate
+    ),
+    /*local!financialBilling: 'type!{urn:com:appian:types:SCMS}SCMS_Financial_Billing_Summary'(),*/
+    {
+      a!gridLayout(
+        label: "Billing Summary",
+        labelPosition: "COLLAPSED",
+        headerCells: {
+          a!gridLayoutHeaderCell(label: "Month", ),
+          a!gridLayoutHeaderCell(label: "Hours"),
+          a!gridLayoutHeaderCell(label: "Monetary Value ($)")
+        },
+        columnConfigs: {},
+        rows: {
+          a!forEach(
+            items: local!monthArray,
+            expression: a!gridRowLayout(
+              contents: {
+                if(
+                  or(
+                    a!isNullOrEmpty(ri!startDate),
+                    a!isNullOrEmpty(ri!endDate)
+                  ),
+                  {
+                    a!textField(value: "", readOnly: true()),
+                    a!textField(value: "", readOnly: true()),
+                    a!textField(value: "", readOnly: true())
+                  },
+                  if(
+                    fv!isFirst,
+                    {
+                      a!richTextDisplayField(value: a!richTextItem(text: fv!item)),
+                      a!richTextDisplayField(
+                        value: a!richTextItem(text: local!workDayStartMonth * 8)
+                      ),
+                      a!richTextDisplayField(
+                        value: a!richTextItem(
+                          text: fixed((
+                            local!workDayStartMonth * 8 * ri!hourlyRate
+                          ) & ".00")
+                        )
+                      )
+                    },
+                    if(
+                      fv!isLast,
+                      {
+                        a!richTextDisplayField(value: a!richTextItem(text: fv!item)),
+                        a!richTextDisplayField(
+                          value: a!richTextItem(text: local!workDayLastMonth * 8)
+                        ),
+                        a!richTextDisplayField(
+                          value: a!richTextItem(
+                            text: fixed((local!workDayLastMonth * 8 * ri!hourlyRate) & ".00")
+                          )
+                        )
+                      },
+                      {
+                        a!richTextDisplayField(value: a!richTextItem(text: fv!item)),
+                        a!richTextDisplayField(
+                          value: a!richTextItem(
+                            text: rule!SCMS_workingDaysInMonth(item: fv!item) * 8
+                          )
+                        ),
+                        a!richTextDisplayField(
+                          value: a!richTextItem(
+                            text: fixed((
+                              rule!SCMS_workingDaysInMonth(item: fv!item) * 8 * ri!hourlyRate
+                            ) & ".00")
+                          )
+                        )
+                      }
+                    )
+                  )
+                )
+              }
+            )
+          )
+        },
+        selectionSaveInto: {},
+        height: "SHORT",
+        validations: {},
+        shadeAlternateRows: true
+      ),
+      /*a!buttonLayout(*/
+        /*primaryButtons: a!buttonWidget(*/
+          /*label: "Save",*/
+          /*saveInto: {*/
+            /*a!forEach(*/
+              /*items: enumerate(local!noOfMonths + 1),*/
+              /*expression: {*/
+                /*if(*/
+                  /*fv!isFirst,*/
+                  /*{*/
+                    /*a!save(*/
+                      /*ri!financialBilling[fv!index].month,*/
+                      /*local!monthArray[fv!index]*/
+                    /*),*/
+                    /*a!save(*/
+                      /*ri!financialBilling[fv!index].hours,*/
+                      /*local!workDayStartMonth * 8*/
+                    /*),*/
+                    /*a!save(*/
+                      /*ri!financialBilling[fv!index].monetaryValue,*/
+                      /*local!workDayStartMonth * 8 * ri!hourlyRate*/
+                    /*),*/
+                    /*a!save(*/
+                      /*ri!financialBilling[fv!index].discountedValue,*/
+                      /*rule!SCMS_getDiscountedValue(*/
+                        /*hourlyRate: ri!hourlyRate,*/
+                        /*discount: ri!discount,*/
+                        /*workingDays: local!workDayStartMonth*/
+                      /*)*/
+                    /*),*/
+                    /*a!save(*/
+                      /*ri!financialBilling[fv!index].createdBy,*/
+                      /*loggedInUser()*/
+                    /*),*/
+                    /*a!save(*/
+                      /*ri!financialBilling[fv!index].createdOn,*/
+                      /*now()*/
+                    /*),*/
+                    /*a!save(*/
+                      /*ri!financialBilling[fv!index].isActive,*/
+                      /*true()*/
+                    /*),*/
+                    /*a!save(*/
+                      /*ri!financialBilling[fv!index].contractId,*/
+                      /*ri!contractId*/
+                    /*),*/
+                    /*a!save(*/
+                      /*ri!financialBilling[fv!index].financialRole,*/
+                      /*ri!financialRole*/
+                    /*)*/
+                  /*},*/
+                  /*if(*/
+                    /*fv!isLast,*/
+                    /*{*/
+                      /*a!save(*/
+                        /*ri!financialBilling[fv!index].month,*/
+                        /*local!monthArray[fv!index]*/
+                      /*),*/
+                      /*a!save(*/
+                        /*ri!financialBilling[fv!index].hours,*/
+                        /*local!workDayLastMonth * 8*/
+                      /*),*/
+                      /*a!save(*/
+                        /*ri!financialBilling[fv!index].monetaryValue,*/
+                        /*local!workDayLastMonth * 8 * ri!hourlyRate*/
+                      /*),*/
+                      /*a!save(*/
+                        /*ri!financialBilling[fv!index].discountedValue,*/
+                        /*rule!SCMS_getDiscountedValue(*/
+                          /*hourlyRate: ri!hourlyRate,*/
+                          /*discount: ri!discount,*/
+                          /*workingDays: local!workDayLastMonth*/
+                        /*)*/
+                      /*),*/
+                      /*a!save(*/
+                        /*ri!financialBilling[fv!index].createdBy,*/
+                        /*loggedInUser()*/
+                      /*),*/
+                      /*a!save(*/
+                        /*ri!financialBilling[fv!index].createdOn,*/
+                        /*now()*/
+                      /*),*/
+                      /*a!save(*/
+                        /*ri!financialBilling[fv!index].isActive,*/
+                        /*true()*/
+                      /*),*/
+                      /*a!save(*/
+                        /*ri!financialBilling[fv!index].contractId,*/
+                        /*ri!contractId*/
+                      /*),*/
+                      /*a!save(*/
+                        /*ri!financialBilling[fv!index].financialRole,*/
+                        /*ri!financialRole*/
+                      /*)*/
+                    /*}*/
+                    /*,*/
+                    /*{*/
+                      /*a!save(*/
+                        /*ri!financialBilling[fv!index].month,*/
+                        /*local!monthArray[fv!index]*/
+                      /*),*/
+                      /*a!save(*/
+                        /*ri!financialBilling[fv!index].hours,*/
+                        /*rule!SCMS_workingDaysInMonth(item: local!monthArray[fv!index]) * 8*/
+                      /*),*/
+                      /*a!save(*/
+                        /*ri!financialBilling[fv!index].monetaryValue,*/
+                        /*rule!SCMS_workingDaysInMonth(item: local!monthArray[fv!index]) * 8 * ri!hourlyRate*/
+                      /*),*/
+                      /*a!save(*/
+                        /*ri!financialBilling[fv!index].discountedValue,*/
+                        /*rule!SCMS_getDiscountedValue(*/
+                          /*hourlyRate: ri!hourlyRate,*/
+                          /*discount: ri!discount,*/
+                          /*workingDays: rule!SCMS_workingDaysInMonth(item: local!monthArray[fv!index])*/
+                        /*)*/
+                      /*),*/
+                      /*a!save(*/
+                        /*ri!financialBilling[fv!index].createdBy,*/
+                        /*loggedInUser()*/
+                      /*),*/
+                      /*a!save(*/
+                        /*ri!financialBilling[fv!index].createdOn,*/
+                        /*now()*/
+                      /*),*/
+                      /*a!save(*/
+                        /*ri!financialBilling[fv!index].isActive,*/
+                        /*true()*/
+                      /*),*/
+                      /*a!save(*/
+                        /*ri!financialBilling[fv!index].contractId,*/
+                        /*ri!contractId*/
+                      /*),*/
+                      /*a!save(*/
+                        /*ri!financialBilling[fv!index].financialRole,*/
+                        /*ri!financialRole*/
+                      /*)*/
+                    /*}*/
+                  /*)*/
+/*                  */
+                /*)*/
+              /*}*/
+            /*),*/
+            /*a!startProcess(*/
+              /*processModel: cons!SCMS_PM_FINANCIAL_BILLING_SUMMARY,*/
+              /*processParameters: { financialBilling: ri!financialBilling }*/
+            /*),*/
+            /*a!save(ri!saveBilling, true())*/
+          /*},*/
+          /*showWhen: if(*/
+            /*a!isNullOrEmpty(ri!saveBilling),*/
+            /*true(),*/
+            /*not(ri!saveBilling)*/
+          /*)*/
+        /*)*/
+      /*)*/
+    }
+  )
+/*)*/
