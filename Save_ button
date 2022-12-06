@@ -1,0 +1,338 @@
+a!buttonWidget(
+                    label: "Save",
+                    saveInto: {
+                      if(
+                        local!currentMilestoneBarStep = 4,
+                        {
+                          {
+                            if(
+                              ri!new,
+                              "",
+                              {
+                                if(
+                                  or(ri!amendment = true, ri!revision = true),
+                                  if(
+                                    a!isNullOrEmpty(local!financialGeneralInfo),
+                                    "",
+                                    a!forEach(
+                                      items: local!financialGeneralInfo,
+                                      expression: {
+                                        a!save(
+                                          fv!item.contractId,
+                                          index(local!contract, "id", "")
+                                        ),
+                                        a!save(fv!item.id, "")
+                                      }
+                                    )
+                                  ),
+                                  {
+                                    a!forEach(
+                                      items: local!financialGeneralInfo,
+                                      expression: {
+                                        a!save(fv!item.modifiedBy, local!user),
+                                        a!save(fv!item.modifiedOn, now()),
+                                        a!save(
+                                          fv!item.contractId,
+                                          ri!contract['recordType!{2ebb93da-5bd4-4067-8886-38d12d0d074e}Contract.fields.{106ff119-dd71-437d-bed5-71e59d633cdb}id']
+                                        )
+                                      }
+                                    ),
+                                    a!save(
+                                      ri!contractFinancial,
+                                      local!financialGeneralInfo
+                                    )
+                                  }
+                                ),
+                                if(
+                                  or(ri!amendment = true, ri!revision = true),
+                                  if(
+                                    a!isNullOrEmpty(local!roleDetails),
+                                    "",
+                                    a!forEach(
+                                      items: local!roleDetails,
+                                      expression: {
+                                        a!save(
+                                          fv!item.contractId,
+                                          index(local!contract, "id", null)
+                                        ),
+                                        a!save(fv!item.id, "")
+                                      }
+                                    )
+                                  ),
+                                  {
+                                    a!forEach(
+                                      items: local!roleDetails,
+                                      expression: {
+                                        a!save(
+                                          fv!item.contractId,
+                                          ri!contract['recordType!{2ebb93da-5bd4-4067-8886-38d12d0d074e}Contract.fields.{106ff119-dd71-437d-bed5-71e59d633cdb}id']
+                                        ),
+                                        a!save(fv!item.modifiedBy, local!user),
+                                        a!save(fv!item.modifiedOn, now())
+                                      }
+                                    ),
+                                    a!save(ri!financialRole, local!roleDetails),
+                                    a!save(
+                                      ri!financialBilling,
+                                      local!finacialBillingDetails
+                                    )
+                                  }
+                                )
+                              }
+                            ),
+                            if(
+                              or(ri!amendment = true, ri!revision = true),
+                              a!startProcess(
+                                processModel: cons!SCMS_PM_CREATE_ROLE_ALLOCATION,
+                                processParameters: {
+                                  contractFinancial: local!financialGeneralInfo,
+                                  roleDetails: local!roleDetails,
+
+                                },
+                                onSuccess: {
+                                  a!save(
+                                    local!roleDetails,
+                                    index(
+                                      index(fv!processInfo, "pv", ""),
+                                      "roleDetails",
+                                      ""
+                                    )
+                                  ),
+                                  a!save(
+                                    local!finacialBillingDetails,
+                                    index(
+                                      index(fv!processInfo, "pv", ""),
+                                      "financialBilling",
+                                      ""
+                                    )
+                                  ),
+                                  a!save(
+                                    local!financialGeneralInfo,
+                                    index(
+                                      index(fv!processInfo, "pv", ""),
+                                      "contractFinancial",
+                                      ""
+                                    )
+                                  )
+                                }
+                              ),
+                              a!startProcess(
+                                processModel: cons!SCMS_PM_CREATE_ROLE_ALLOCATION,
+                                processParameters: {
+                                  contractFinancial: ri!contractFinancial,
+                                  roleDetails: ri!financialRole,
+
+                                },
+                                onSuccess: {
+                                  a!save(
+                                    ri!financialRole,
+                                    index(
+                                      index(fv!processInfo, "pv", ""),
+                                      "roleDetails",
+                                      ""
+                                    )
+                                  ),
+                                  a!save(
+                                    ri!financialBilling,
+                                    index(
+                                      index(fv!processInfo, "pv", ""),
+                                      "financialBilling",
+                                      ""
+                                    )
+                                  ),
+                                  a!save(
+                                    ri!contractFinancial,
+                                    index(
+                                      index(fv!processInfo, "pv", ""),
+                                      "contractFinancial",
+                                      ""
+                                    )
+                                  )
+                                }
+                              )
+                            ),
+                            a!save(
+                              local!saveStep4,
+                              true()
+                            )
+                          }
+                          
+                        },
+                        if(
+                          local!currentMilestoneBarStep = 6,
+                          {
+                            if(
+                              ri!new,
+                              {
+                                a!save(
+                                  ri!financialDeliverables.createdBy,
+                                  local!user
+                                ),
+                                a!save(
+                                  ri!financialDeliverables.createdOn,
+                                  now()
+                                ),
+                                a!save(
+                                  ri!financialDeliverables.isActive,
+                                  true()
+                                ),
+                                a!save(
+                                  ri!financialDeliverables.contractId,
+                                  local!contract.id
+                                )
+                              },
+                              {
+                                a!save(
+                                  ri!financialDeliverables,
+                                  local!deliverableDetails
+                                ),
+                                a!save(
+                                  ri!financialDeliverables.modifiedBy,
+                                  local!user
+                                ),
+                                if(
+                                  or(ri!amendment = true, ri!revision = true),
+                                  if(
+                                    a!isNullOrEmpty(local!deliverableDetails),
+                                    "",
+                                    a!forEach(
+                                      items: local!deliverableDetails,
+                                      expression: {
+                                        a!save(
+                                          fv!item.contractId,
+                                          property(local!contract, "id", "")
+                                        ),
+                                        a!save(fv!item.id, "")
+                                      }
+                                    )
+                                  ),
+                                  a!save(
+                                    ri!financialDeliverables.contractId,
+                                    ri!contract['recordType!{2ebb93da-5bd4-4067-8886-38d12d0d074e}Contract.fields.{106ff119-dd71-437d-bed5-71e59d633cdb}id']
+                                  )
+                                ),
+                                a!save(
+                                  ri!financialDeliverables.modifiedOn,
+                                  now()
+                                ),
+                                a!save(
+                                  ri!financialDeliverables.isActive,
+                                  true()
+                                )
+                              }
+                            ),
+                            if(
+                              or(ri!amendment = true, ri!revision = true),
+                              a!startProcess(
+                                processModel: cons!SCMS_PM_FINANCIAL_DELIVERABLES,
+                                processParameters: {
+                                  financialDeliverables: local!deliverableDetails
+                                },
+                                onSuccess: {
+                                  a!save(
+                                    local!deliverableDetails,
+                                    index(
+                                      index(fv!processInfo, "pv", ""),
+                                      "financialDeliverables",
+                                      ""
+                                    )
+                                  )
+                                }
+                              ),
+                              a!startProcess(
+                                processModel: cons!SCMS_PM_FINANCIAL_DELIVERABLES,
+                                processParameters: {
+                                  financialDeliverables: ri!financialDeliverables
+                                },
+                                onSuccess: {
+                                  a!save(
+                                    ri!financialDeliverables,
+                                    index(
+                                      index(fv!processInfo, "pv", ""),
+                                      "financialDeliverables",
+                                      ""
+                                    )
+                                  )
+                                }
+                              )
+                            ),
+                            a!save(local!saveStep5, true())
+                          },
+                          ""
+                        )
+                      ),
+                      a!save(
+                        local!refreshVar,
+                        tointeger(local!refreshVar) + 1
+                      ),
+                      a!forEach(
+                        items: enumerate(local!refreshVar),
+                        expression: {
+                          a!save(
+                            local!contractId,
+                            if(
+                              ri!new,
+                              property(local!contract, "id", ""),
+                              if(
+                                or(ri!amendment = true(), ri!revision = true()),
+                                if(
+                                  a!isNullOrEmpty(local!contract),
+                                  ri!contract['recordType!{2ebb93da-5bd4-4067-8886-38d12d0d074e}Contract.fields.{106ff119-dd71-437d-bed5-71e59d633cdb}id'],
+                                  property(local!contract, "id", "")
+                                ),
+                                ri!contract['recordType!{2ebb93da-5bd4-4067-8886-38d12d0d074e}Contract.fields.{106ff119-dd71-437d-bed5-71e59d633cdb}id']
+                              )
+                            )
+                          ),
+                          a!save(
+                            local!financialId,
+                            if(
+                              ri!new,
+                              property(ri!contractFinancial, "id", ""),
+                              property(local!financialGeneralInfo, "id", "")
+                            )
+                          ),
+                          a!save(
+                            local!billindDataSubset,
+                            rule!SCMS_getBillingDataSubset(
+                              contractId: local!contractId,
+                              financialId: local!financialId
+                            )
+                          ),
+                          a!save(
+                            local!roleDataSubset,
+                            rule!SCMS_getRoleDataSubset(
+                              contractId: local!contractId,
+                              financialId: local!financialId
+                            )
+                          ),
+                          a!save(
+                            local!milestoneDataSubset,
+                            rule!SCMS_getMilestoneDataSubset(
+                              contractId: local!contractId,
+                              financialId: local!financialId
+                            )
+                          )
+                        }
+                      ),
+                      
+                    },
+                    style: "PRIMARY",
+                    showWhen: if(
+                      ri!viewOnly = true(),
+                      false(),
+                      if(
+                        and(
+                          contains({ 4, 6 }, local!currentMilestoneBarStep),
+                          if(
+                            ri!new,
+                            a!isNotNullOrEmpty(local!contract.id),
+                            ri!contract['recordType!{2ebb93da-5bd4-4067-8886-38d12d0d074e}Contract.fields.{106ff119-dd71-437d-bed5-71e59d633cdb}id']
+                          )
+                        ),
+                        { true() },
+                        false()
+                      )
+                    ),
+                    submit: true(),
+                  ),
