@@ -1,0 +1,39 @@
+if(
+  a!isNullOrEmpty(ri!contractId),
+  "",
+  index(
+    a!queryEntity(
+      entity: cons!SCMS_DSE_FINANCIAL_BILLING_SUMMARY,
+      query: a!query(
+        logicalExpression: a!queryLogicalExpression(
+          operator: "AND",
+          filters: {
+            a!queryFilter(
+              field: "contractId",
+              operator: "=",
+              value: ri!contractId
+            ),
+            a!queryFilter(
+              field: "financialId",
+              operator: "=",
+              value: ri!financialId
+            ),
+            a!queryFilter(
+              field: "month",
+              operator: "=",
+              value: ri!month
+            )
+          },
+          ignoreFiltersWithEmptyValues: true
+        ),
+        pagingInfo: a!defaultValue(
+          value: ri!pagingInfo,
+          default: a!pagingInfo(startIndex: 1, batchSize: 50)
+        )
+      ),
+      fetchTotalCount: false
+    ),
+    "data",
+    ""
+  )
+)
