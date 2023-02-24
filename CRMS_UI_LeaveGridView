@@ -1,0 +1,181 @@
+a!localVariables(
+  local!pickerName,
+  local!status,
+  {
+    a!cardLayout(
+      contents: a!sideBySideLayout(
+        items: {
+          a!sideBySideItem(
+            item: a!richTextDisplayField(
+              labelPosition: "COLLAPSED",
+              value: {
+                a!richTextItem(
+                  text: { "Leaves" },
+                  color: "ACCENT",
+                  size: "MEDIUM_PLUS",
+                  style: { "STRONG" }
+                ),
+                char(10)
+              }
+            ),
+            width: "2X"
+          ),
+          a!sideBySideItem(
+            item: a!pickerFieldCustom(
+              label: "Role Name",
+              labelPosition: "COLLAPSED",
+              placeholder: "--- Filter by Employee Id ---",
+              maxSelections: 1,
+              suggestFunction: rule!SRMS_EmployeeIdPicker(id: _),
+              selectedLabels: index(local!pickerName, "employeeId", null),
+              value: local!pickerName,
+              saveInto: local!pickerName
+            ),
+            width: "1X"
+          ),
+          a!sideBySideItem(
+            item: a!dropdownField(
+              label: "",
+              labelPosition: "COLLAPSED",
+              placeholder: "----Select Status ---",
+              choiceLabels: { "Active", "Inactive" },
+              choiceValues: { true, false },
+              value: local!status,
+              saveInto: local!status
+            ),
+            width: "1X"
+          ),
+          a!sideBySideItem(
+            item: a!recordActionField(
+              actions: a!recordActionItem(
+                action: 'recordType!{60fbd807-4dbd-4961-b2ce-f87221607e3f}CRMS Leave.actions.{85fe973b-4969-409d-a743-6287e4c402e8}newLeave'
+              )
+            ),
+            showWhen: a!isUserMemberOfGroup(
+            username: loggedInUser(),
+            groups: cons!SCMS_GRP_CREATORS
+            ),
+            width: "MINIMIZE"
+          )
+        },
+        alignVertical: "MIDDLE"
+        
+        
+      ),
+      padding: "NONE",
+      marginBelow: "STANDARD",
+      showBorder: 0
+    ),
+    a!gridField(
+      label: "",
+      labelPosition: "ABOVE",
+      data: 'recordType!{60fbd807-4dbd-4961-b2ce-f87221607e3f}CRMS Leave',
+      columns: {
+        a!gridColumn(
+          label: "Id",
+          sortField: 'recordType!{60fbd807-4dbd-4961-b2ce-f87221607e3f}CRMS Leave.fields.{d619185a-da17-4373-afd1-0a7dd9537307}id',
+          value: fv!row['recordType!{60fbd807-4dbd-4961-b2ce-f87221607e3f}CRMS Leave.fields.{d619185a-da17-4373-afd1-0a7dd9537307}id'],
+          align: "END"
+        ),
+        a!gridColumn(
+          label: "Employee Id",
+          sortField: 'recordType!{60fbd807-4dbd-4961-b2ce-f87221607e3f}CRMS Leave.fields.{1280caf3-0e1e-4450-bad3-ab363296e9bf}employeeId',
+          value: a!linkField(
+            links: {
+              a!recordLink(
+                label: fv!row['recordType!{60fbd807-4dbd-4961-b2ce-f87221607e3f}CRMS Leave.fields.{1280caf3-0e1e-4450-bad3-ab363296e9bf}employeeId'],
+                recordType: 'recordType!{60fbd807-4dbd-4961-b2ce-f87221607e3f}CRMS Leave',
+                identifier: fv!identifier
+              )
+            }
+          )
+        ),
+        a!gridColumn(
+          label: "Resource Id",
+          sortField: 'recordType!{60fbd807-4dbd-4961-b2ce-f87221607e3f}CRMS Leave.fields.{aab8dc51-8e91-44d7-a8c5-6422a23f44b9}resourceId',
+          value: fv!row['recordType!{60fbd807-4dbd-4961-b2ce-f87221607e3f}CRMS Leave.fields.{aab8dc51-8e91-44d7-a8c5-6422a23f44b9}resourceId'],
+          align: "END"
+        ),
+        a!gridColumn(
+          label: "External Ref Id",
+          sortField: 'recordType!{60fbd807-4dbd-4961-b2ce-f87221607e3f}CRMS Leave.fields.{5bf84270-4b91-4875-93f2-e0e75322b939}externalRefId',
+          value: fv!row['recordType!{60fbd807-4dbd-4961-b2ce-f87221607e3f}CRMS Leave.fields.{5bf84270-4b91-4875-93f2-e0e75322b939}externalRefId']
+        ),
+        a!gridColumn(
+          label: "Date",
+          sortField: 'recordType!{60fbd807-4dbd-4961-b2ce-f87221607e3f}CRMS Leave.fields.{a8f878fd-e4c6-4754-b23d-0cde75083b0c}date',
+          value: fv!row['recordType!{60fbd807-4dbd-4961-b2ce-f87221607e3f}CRMS Leave.fields.{a8f878fd-e4c6-4754-b23d-0cde75083b0c}date']
+        ),
+        a!gridColumn(
+          label: "Hours",
+          sortField: 'recordType!{60fbd807-4dbd-4961-b2ce-f87221607e3f}CRMS Leave.fields.{e669f8c3-fba5-4f88-9fe2-080601ff984f}hours',
+          value: if(
+            isnull(
+              fv!row['recordType!{60fbd807-4dbd-4961-b2ce-f87221607e3f}CRMS Leave.fields.{e669f8c3-fba5-4f88-9fe2-080601ff984f}hours']
+            ),
+            fv!row['recordType!{60fbd807-4dbd-4961-b2ce-f87221607e3f}CRMS Leave.fields.{e669f8c3-fba5-4f88-9fe2-080601ff984f}hours'],
+            fixed(
+              fv!row['recordType!{60fbd807-4dbd-4961-b2ce-f87221607e3f}CRMS Leave.fields.{e669f8c3-fba5-4f88-9fe2-080601ff984f}hours'],
+              2
+            )
+          ),
+          align: "END"
+        ),
+        a!gridColumn(
+          label: "Source",
+          sortField: 'recordType!{60fbd807-4dbd-4961-b2ce-f87221607e3f}CRMS Leave.fields.{86978672-d3b8-4f70-9f45-ae1751a5193a}source',
+          value: fv!row['recordType!{60fbd807-4dbd-4961-b2ce-f87221607e3f}CRMS Leave.fields.{86978672-d3b8-4f70-9f45-ae1751a5193a}source']
+        ),
+        a!gridColumn(
+          label: "Created By",
+          sortField: 'recordType!{60fbd807-4dbd-4961-b2ce-f87221607e3f}CRMS Leave.fields.{1d0cf13b-237f-430a-81c1-d9e59c0393c8}createdBy',
+          value: fv!row['recordType!{60fbd807-4dbd-4961-b2ce-f87221607e3f}CRMS Leave.fields.{1d0cf13b-237f-430a-81c1-d9e59c0393c8}createdBy']
+        ),
+        a!gridColumn(
+          label: "Created On",
+          sortField: 'recordType!{60fbd807-4dbd-4961-b2ce-f87221607e3f}CRMS Leave.fields.{91ad8d24-8f55-491c-ab05-bfc66e330fb1}createdOn',
+          value: if(
+            isnull(
+              fv!row['recordType!{60fbd807-4dbd-4961-b2ce-f87221607e3f}CRMS Leave.fields.{91ad8d24-8f55-491c-ab05-bfc66e330fb1}createdOn']
+            ),
+            fv!row['recordType!{60fbd807-4dbd-4961-b2ce-f87221607e3f}CRMS Leave.fields.{91ad8d24-8f55-491c-ab05-bfc66e330fb1}createdOn'],
+            datetext(
+              fv!row['recordType!{60fbd807-4dbd-4961-b2ce-f87221607e3f}CRMS Leave.fields.{91ad8d24-8f55-491c-ab05-bfc66e330fb1}createdOn'],
+              "default"
+            )
+          ),
+          align: "END"
+        ),
+        a!gridColumn(
+          label: "Modifed By",
+          sortField: 'recordType!{60fbd807-4dbd-4961-b2ce-f87221607e3f}CRMS Leave.fields.{8e75a83a-cff5-4def-8062-10a50fa41655}modifedBy',
+          value: fv!row['recordType!{60fbd807-4dbd-4961-b2ce-f87221607e3f}CRMS Leave.fields.{8e75a83a-cff5-4def-8062-10a50fa41655}modifedBy']
+        ),
+        a!gridColumn(
+          label: "Modified On",
+          sortField: 'recordType!{60fbd807-4dbd-4961-b2ce-f87221607e3f}CRMS Leave.fields.{4a4ce1cc-81ac-4e70-bd8a-65e05968d661}modifiedOn',
+          value: if(
+            isnull(
+              fv!row['recordType!{60fbd807-4dbd-4961-b2ce-f87221607e3f}CRMS Leave.fields.{4a4ce1cc-81ac-4e70-bd8a-65e05968d661}modifiedOn']
+            ),
+            fv!row['recordType!{60fbd807-4dbd-4961-b2ce-f87221607e3f}CRMS Leave.fields.{4a4ce1cc-81ac-4e70-bd8a-65e05968d661}modifiedOn'],
+            datetext(
+              fv!row['recordType!{60fbd807-4dbd-4961-b2ce-f87221607e3f}CRMS Leave.fields.{4a4ce1cc-81ac-4e70-bd8a-65e05968d661}modifiedOn'],
+              "default"
+            )
+          ),
+          align: "END"
+        ),
+        a!gridColumn(
+          label: "Is Active",
+          sortField: 'recordType!{60fbd807-4dbd-4961-b2ce-f87221607e3f}CRMS Leave.fields.{7ecfd61f-5f7c-436b-84a5-815077808ea5}isActive',
+          value: fv!row['recordType!{60fbd807-4dbd-4961-b2ce-f87221607e3f}CRMS Leave.fields.{7ecfd61f-5f7c-436b-84a5-815077808ea5}isActive']
+        )
+      },
+      validations: {},
+      refreshAfter: "RECORD_ACTION",
+      showSearchBox: false(),
+      showRefreshButton: false(),
+    )
+  }
+)
