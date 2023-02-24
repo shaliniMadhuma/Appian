@@ -1,0 +1,53 @@
+{
+  a!richTextDisplayField(
+    labelPosition: "COLLAPSED",
+    value: {
+      a!richTextItem(
+        text: { " Add Leaves" },
+        color: "ACCENT",
+        size: "MEDIUM_PLUS",
+        style: { "STRONG" }
+      ),
+      char(10),
+      a!richTextItem(
+        text: { "Upload the excel file here" },
+        color: "SECONDARY"
+      )
+    }
+  ),
+  a!fileUploadField(
+    labelPosition: "ABOVE",
+    value: ri!file,
+    maxSelections: 1,
+    target: cons!CRMS_FL_LEAVE,
+    saveInto: { ri!file },
+    validations: {
+      if(
+        fv!files.extension = "XLSX",
+        "",
+        "Excel Type Only"
+      )
+    },
+
+  ),
+  a!buttonLayout(
+    primaryButtons: {
+      a!buttonWidget(
+        label: "Upload",
+        submit: true(),
+        style: "PRIMARY",
+        validate: true
+      )
+    },
+    secondaryButtons: {
+      a!buttonWidget(
+        label: "Cancel",
+        value: true,
+        saveInto: ri!cancel,
+        submit: true,
+        style: "NORMAL",
+        validate: false
+      )
+    }
+  )
+}
