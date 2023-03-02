@@ -1,0 +1,141 @@
+a!localVariables(
+  local!leaveData_old: a!flatten(
+    a!forEach(
+      items: ri!externalRefId_old,
+      expression: a!flatten(
+        rule!CRMS_QE_getLeaveData(externalRefId: fv!item)
+      )
+    )
+  ),
+  local!leaveTempData: a!flatten(
+    a!forEach(
+      items: ri!externalRefId_old,
+      expression: rule!CRMS_QE_getLeaveTempData(
+        externalRefId: fv!item, 
+        isActive: false()
+      )
+    )
+  ),
+  if(
+    length(local!leaveTempData) = 1,
+    {a!forEach(
+      items: ri!externalRefId_old,
+      expression: if(
+        or(a!isNullOrEmpty(local!leaveData_old),a!isNullOrEmpty(local!leaveTempData)),
+        "",
+        cast(
+          typeof(
+            'type!{urn:com:appian:types:CRMS}CRMS_Leave'()
+          ),
+          a!map(
+            id: index(local!leaveData_old, "id", ""),
+            employeeId: index(
+              local!leaveTempData,
+              "employeeId",
+              ""
+            ),
+            resourceId: index(
+              local!leaveData_old,
+              "resourceId",
+              ""
+            ),
+            externalRefId: index(
+              local!leaveTempData,
+              "externalRefId",
+              ""
+            ),
+            date: index(
+              local!leaveTempData,
+              "date",
+              ""
+            ),
+            hours: index(
+              local!leaveTempData,
+              "hours",
+              ""
+            ),
+            source: index(
+              local!leaveData_old,
+              "source",
+              ""
+            ),
+            createdBy: index(
+              local!leaveData_old,
+              "createdBy",
+              ""
+            ),
+            createdOn: index(
+              local!leaveData_old,
+              "createdOn",
+              ""
+            ),
+            modifedBy: rule!CRMS_getUserFullName(loggedInUser()),
+            modifiedOn: now(),
+            isActive: true(),
+
+          )
+        )
+      )
+    )},
+    {a!forEach(
+      items: ri!externalRefId_old,
+      expression: if(
+        or(a!isNullOrEmpty(local!leaveData_old),a!isNullOrEmpty(local!leaveTempData)),
+        "",
+        cast(
+          typeof(
+            'type!{urn:com:appian:types:CRMS}CRMS_Leave'()
+          ),
+          a!map(
+            id: index(local!leaveData_old[fv!index], "id", ""),
+            employeeId: index(
+              local!leaveTempData[fv!index],
+              "employeeId",
+              ""
+            ),
+            resourceId: index(
+              local!leaveData_old[fv!index],
+              "resourceId",
+              ""
+            ),
+            externalRefId: index(
+              local!leaveTempData[fv!index],
+              "externalRefId",
+              ""
+            ),
+            date: index(
+              local!leaveTempData[fv!index],
+              "date",
+              ""
+            ),
+            hours: index(
+              local!leaveTempData[fv!index],
+              "hours",
+              ""
+            ),
+            source: index(
+              local!leaveData_old[fv!index],
+              "source",
+              ""
+            ),
+            createdBy: index(
+              local!leaveData_old[fv!index],
+              "createdBy",
+              ""
+            ),
+            createdOn: index(
+              local!leaveData_old[fv!index],
+              "createdOn",
+              ""
+            ),
+            modifedBy: rule!CRMS_getUserFullName(loggedInUser()),
+            modifiedOn: now(),
+            isActive: true(),
+
+          )
+        )
+      )
+    )}
+  )
+  
+)
