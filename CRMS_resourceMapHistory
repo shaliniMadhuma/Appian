@@ -1,0 +1,25 @@
+a!localVariables(
+  local!resourceMap: rule!CRMS_QE_getResourceMapRecordById(
+    ResourceMapId: ri!resourceMapId,
+    pagingInfo: a!pagingInfo(
+      startIndex: 1,
+      batchSize: 1
+    )
+  ),
+  cast(
+  'type!{urn:com:appian:types:CRMS}CRMS_ResourceMap_History',
+  a!map(
+    id:null(),
+    resourceMapId: index(local!resourceMap, 'recordType!{bc207db1-9ae9-4e99-a425-1178a081b48d}CRMS Resource Map.fields.{5d014354-f741-4657-adf5-52d95786b96c}id',""),
+    ratecardId: index(local!resourceMap, 'recordType!{bc207db1-9ae9-4e99-a425-1178a081b48d}CRMS Resource Map.fields.{a03274f8-ce7b-4d99-bf2a-e468de218cdc}ratecardid',""),
+    contractId: index(local!resourceMap, 'recordType!{bc207db1-9ae9-4e99-a425-1178a081b48d}CRMS Resource Map.fields.{41c0f4e1-4ca7-4846-ad33-2593446a7ddd}contractid',""),
+    resMapNumber: index(local!resourceMap, 'recordType!{bc207db1-9ae9-4e99-a425-1178a081b48d}CRMS Resource Map.fields.{7c540242-82c9-4b93-9c1b-b976f78783b5}resmapnumber',""),
+    burnForecast: index(local!resourceMap, 'recordType!{bc207db1-9ae9-4e99-a425-1178a081b48d}CRMS Resource Map.fields.{986095cf-3180-474e-b509-9e66e34cff5d}burnforecast',""),
+    mapEffectiveDate: index(local!resourceMap, 'recordType!{bc207db1-9ae9-4e99-a425-1178a081b48d}CRMS Resource Map.fields.{c6f79079-c1a8-4c1d-bf9b-6d42b4d475e1}mapeffectivedate',""),
+    mapExpiryDate: index(local!resourceMap, 'recordType!{bc207db1-9ae9-4e99-a425-1178a081b48d}CRMS Resource Map.fields.{10606098-dead-4872-b111-42b69595676d}mapexpirydate',""),
+    updatedOn: now(),
+    updatedBy: loggedInUser(),
+    isActive: index(local!resourceMap, 'recordType!{bc207db1-9ae9-4e99-a425-1178a081b48d}CRMS Resource Map.fields.{7fea6717-6286-4b46-ac61-fde7f8d1bc67}isactive',"")
+  )
+)
+)
