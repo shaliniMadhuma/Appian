@@ -1,0 +1,57 @@
+ a!forEach(
+  items: ri!resourceAllocation,
+  expression: cast(
+    'type!{urn:com:appian:types:CRMS}CRMS_Contract_Role_Resource_Mapping_History',
+    a!map(
+      id: null(),
+      resourceMapId: index(
+        fv!item,
+        'recordType!{a784d1ef-9b7d-4610-85cd-dce219b3813f}CRMS Contract Role Resource Mapping.fields.{16d6b23b-4297-45f7-adb7-0bd2fe631491}resourcemapid',
+        ""
+      ),
+      roleResourceMapId:index(
+        fv!item,
+        'recordType!{a784d1ef-9b7d-4610-85cd-dce219b3813f}CRMS Contract Role Resource Mapping.fields.{47d74318-b1e9-456a-8acc-d17062604aa3}id',
+        ""
+      ),
+      resourceId: index(
+        fv!item,
+        'recordType!{a784d1ef-9b7d-4610-85cd-dce219b3813f}CRMS Contract Role Resource Mapping.fields.{1df7c979-37c3-4d1c-a46f-693bab6a5cf0}resourceid',
+        ""
+      ),
+      contractId: index(
+        fv!item,
+        'recordType!{a784d1ef-9b7d-4610-85cd-dce219b3813f}CRMS Contract Role Resource Mapping.fields.{dd2c2e77-283c-4887-b295-ba4b55e8442a}contractid',
+        ""
+      ),
+      contractRoleId: index(
+        fv!item,
+        'recordType!{a784d1ef-9b7d-4610-85cd-dce219b3813f}CRMS Contract Role Resource Mapping.fields.{8281a240-2c14-44ec-ba54-02c35b9a6090}contractroleid',
+        ""
+      ),
+      allocationStartDate: index(
+        fv!item,
+        'recordType!{a784d1ef-9b7d-4610-85cd-dce219b3813f}CRMS Contract Role Resource Mapping.fields.{03ed539d-4e91-41ca-a893-18ca7b75720b}allocationstartdate',
+        ""
+      ),
+      allocationEndDate: index(
+        fv!item,
+        'recordType!{a784d1ef-9b7d-4610-85cd-dce219b3813f}CRMS Contract Role Resource Mapping.fields.{6cb2cc0a-11d2-46f8-9c32-d48f571378db}allocationenddate',
+        ""
+      ),
+      allocationPercentage: index(
+        fv!item,
+        'recordType!{a784d1ef-9b7d-4610-85cd-dce219b3813f}CRMS Contract Role Resource Mapping.fields.{5896aa72-4e88-410b-8097-9e9dcfdebdd2}allocationpercentage',
+        ""
+      ),
+      updatedOn: now(),
+      updatedBy: loggedInUser(),
+      isActive: index(
+        fv!item,
+        'recordType!{a784d1ef-9b7d-4610-85cd-dce219b3813f}CRMS Contract Role Resource Mapping.fields.{56e70dae-1693-4aa2-a936-a55c7ef6421d}isactive',
+        ""
+      ),
+      
+    )
+  )
+)
